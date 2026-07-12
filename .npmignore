@@ -1,0 +1,14 @@
+.devdiff/
+.github/
+docs/
+test/
+scratch/
+scripts/
+.gitignore
+tsconfig.json
+vitest.config.ts
+*.log
+src/
+.devdiff.config.js
+.devdiffignore
+vercel.json
