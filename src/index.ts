@@ -126,7 +126,17 @@ export default function DepthIndexPlugin(
 
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url?.endsWith('.worker.js') || req.url?.includes('search-worker')) {
+        if (req.url === '/depthindex-search-worker.js') {
+          const workerPath = path.resolve(__dirname, './client/search-worker.js');
+          if (fs.existsSync(workerPath)) {
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+            res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+            res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+            res.end(fs.readFileSync(workerPath, 'utf-8'));
+            return;
+          }
+        }
+        if (req.url?.endsWith('.worker.js') || req.url?.includes('search-worker') || req.url?.includes('depthindex-search-worker')) {
           res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
           res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
           res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -354,7 +364,10 @@ export default function DepthIndexPlugin(
                       }
                       return response;
                     })
-                    .catch(() => caches.match(event.request))
+                    .catch(() => caches.match(event.request).then(cached => {
+                      if (cached) return cached;
+                      throw new Error('Offline and not cached');
+                    }))
                 );
                 return;
               }
@@ -365,7 +378,7 @@ export default function DepthIndexPlugin(
                   if (cachedResponse) {
                     fetch(event.request).then(networkResponse => {
                       if (networkResponse && networkResponse.status === 200) {
-                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
                       }
                     }).catch(() => {});
                     return cachedResponse;
@@ -391,6 +404,20 @@ export default function DepthIndexPlugin(
             source: swContent,
           });
           console.log('[depthindex] Service worker emitted successfully.');
+
+          // Emit search-worker.js as depthindex-search-worker.js
+          const workerPath = path.resolve(__dirname, './client/search-worker.js');
+          if (fs.existsSync(workerPath)) {
+            const workerSource = fs.readFileSync(workerPath, 'utf-8');
+            this.emitFile({
+              type: 'asset',
+              fileName: 'depthindex-search-worker.js',
+              source: workerSource,
+            });
+            console.log('[depthindex] Search worker emitted successfully.');
+          } else {
+            console.warn('[depthindex] search-worker.js not found at:', workerPath);
+          }
         }
 
         // SEO Generation

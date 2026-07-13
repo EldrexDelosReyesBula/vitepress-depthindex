@@ -30,8 +30,10 @@ export class PerformanceOptimizer {
 
     this.workerLoading = true;
     try {
-      // In Vite/VitePress, the worker URL can be resolved relative to this module
-      const workerUrl = new URL('./search-worker.js', import.meta.url).href;
+      const base = (import.meta as any).env?.BASE_URL || '/';
+      const cleanBase = base.endsWith('/') ? base : base + '/';
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const workerUrl = `${baseUrl}${cleanBase}depthindex-search-worker.js`;
       
       // Let's test the MIME type before starting the worker
       try {

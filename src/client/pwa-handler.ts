@@ -17,8 +17,10 @@ export function registerServiceWorker(enabled: boolean = true): void {
   }
 
   window.addEventListener('load', () => {
+    const base = (import.meta as any).env?.BASE_URL || '/';
+    const cleanBase = base.endsWith('/') ? base : base + '/';
     navigator.serviceWorker
-      .register('/depthindex-sw.js')
+      .register(`${cleanBase}depthindex-sw.js`)
       .then(registration => {
         console.log('[depthindex] Service worker registered successfully:', registration.scope);
       })

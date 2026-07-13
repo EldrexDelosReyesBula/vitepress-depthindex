@@ -4,6 +4,13 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.1.1] - 2026-07-13
+
+### Fixed
+- Web Worker loading issue in production environments by emitting `search-worker.js` as a root-level static asset (`/depthindex-search-worker.js`) and resolving it relative to Vite's `BASE_URL`.
+- Service Worker fetch listener `TypeError: Failed to convert value to 'Response'` by throwing a proper network error when offline resources are missing from the cache, allowing browsers to handle the offline state gracefully.
+- Service Worker registration scope resolution to support base subpaths.
+
 ## [1.1.0] - 2026-07-13
 
 ### Added
