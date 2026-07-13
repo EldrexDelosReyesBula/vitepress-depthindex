@@ -375,76 +375,79 @@ export class SiteContextEngine {
     const profile = this.detectSiteProfile();
     const questions: string[] = [];
     
-    // Type-specific questions
-    switch (profile.type) {
-      case 'library':
-        questions.push(
-          'How do I install this?',
-          'What are the main features?',
-          'Show me a basic example',
-          'How do I configure it?',
-          'What are the requirements?',
-        );
-        break;
-        
-      case 'framework':
-        questions.push(
-          'How do I create a new project?',
-          'What is the project structure?',
-          'How does routing work?',
-          'Show me component examples',
-          'How do I deploy?',
-        );
-        break;
-        
-      case 'tool':
-        questions.push(
-          'How do I use the CLI?',
-          'What commands are available?',
-          'Show me common workflows',
-          'How do I configure it?',
-          'What can this tool do?',
-        );
-        break;
-        
-      case 'api':
-        questions.push(
-          'How do I authenticate?',
-          'What endpoints are available?',
-          'Show me a request example',
-          'What are the rate limits?',
-          'How do I handle errors?',
-        );
-        break;
-        
-      case 'guide':
-        questions.push(
-          'What will I learn?',
-          'What are the prerequisites?',
-          'How long does it take?',
-          'Show me the first steps',
-          'Is there a quick start?',
-        );
-        break;
-        
-      default:
-        questions.push(
-          'What is this about?',
-          'How do I get started?',
-          'What are the key features?',
-          'Show me examples',
-          'Where should I begin?',
-        );
-    }
-    
-    // Add topic-specific questions
-    for (const topic of profile.topics.slice(0, 3)) {
-      if (!questions.some(q => q.toLowerCase().includes(topic.toLowerCase()))) {
-        questions.push(`Tell me about ${topic}`);
+    // 1. Add topic-specific questions first (highly dynamic!)
+    if (profile.topics && profile.topics.length > 0) {
+      for (const topic of profile.topics) {
+        const cleanTopic = topic.trim();
+        if (cleanTopic.length > 3 && cleanTopic.length < 40) {
+          const lower = cleanTopic.toLowerCase();
+          if (lower !== 'api' && lower !== 'api reference' && lower !== 'core api') {
+            questions.push(`What is ${cleanTopic}?`);
+            questions.push(`How does ${cleanTopic} work?`);
+          }
+        }
       }
     }
+
+    // 2. Add type-specific questions as fallbacks
+    const fallbackQuestions: string[] = [];
+    switch (profile.type) {
+      case 'library':
+        fallbackQuestions.push(
+          'How do I install this plugin?',
+          'Show me a basic configuration example',
+          'What are the key features?',
+          'What are the peer requirements?'
+        );
+        break;
+      case 'api':
+        fallbackQuestions.push(
+          'How do I initialize the API?',
+          'What configuration options are available?',
+          'Show me a basic code example',
+          'How do I handle errors?'
+        );
+        break;
+      case 'tool':
+        fallbackQuestions.push(
+          'How do I use the CLI command?',
+          'What commands are available?',
+          'Show me common workflows',
+          'How do I configure it?'
+        );
+        break;
+      case 'framework':
+        fallbackQuestions.push(
+          'How do I get started?',
+          'What is the project structure?',
+          'How do I deploy?'
+        );
+        break;
+      default:
+        fallbackQuestions.push(
+          'How do I get started?',
+          'What are the main features?',
+          'Show me configuration examples'
+        );
+    }
+
+    for (const q of fallbackQuestions) {
+      questions.push(q);
+    }
     
-    return questions.slice(0, count);
+    // Deduplicate questions (case-insensitive check)
+    const uniqueQuestions: string[] = [];
+    const seen = new Set<string>();
+    
+    for (const q of questions) {
+      const normalized = q.toLowerCase().trim();
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        uniqueQuestions.push(q);
+      }
+    }
+
+    return uniqueQuestions.slice(0, count);
   }
   
   /**

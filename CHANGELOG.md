@@ -4,6 +4,12 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.1.2] - 2026-07-13
+
+### Fixed
+- Smart suggested questions to prioritize dynamic, page-specific topics extracted from document headings instead of falling back to static/out-of-context template questions.
+- Replaced generic API authentication/endpoints fallback suggestions with library-appropriate alternatives.
+
 ## [1.1.1] - 2026-07-13
 
 ### Fixed
