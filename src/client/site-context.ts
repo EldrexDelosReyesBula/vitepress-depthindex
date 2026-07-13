@@ -373,76 +373,135 @@ export class SiteContextEngine {
    */
   generateSuggestedQuestions(count: number = 5): string[] {
     const profile = this.detectSiteProfile();
+    const headings = this.extractAllHeadings();
     const questions: string[] = [];
-    
-    // 1. Add topic-specific questions first (highly dynamic!)
-    if (profile.topics && profile.topics.length > 0) {
-      for (const topic of profile.topics) {
-        const cleanTopic = topic.trim();
-        if (cleanTopic.length > 3 && cleanTopic.length < 40) {
-          const lower = cleanTopic.toLowerCase();
-          if (lower !== 'api' && lower !== 'api reference' && lower !== 'core api') {
-            questions.push(`What is ${cleanTopic}?`);
-            questions.push(`How does ${cleanTopic} work?`);
+
+    const headingMap: Record<string, string> = {
+      'installation': 'How do I install this?',
+      'installing': 'How do I install this?',
+      'getting started': 'How do I get started?',
+      'quick start': 'How do I get started?',
+      'configuration': 'How do I configure this?',
+      'usage': 'How do I use this?',
+      'examples': 'Show me some examples',
+      'prerequisites': 'What are the prerequisites?',
+      'requirements': 'What are the prerequisites?',
+      'features': 'What are the key features?',
+      'key features': 'What are the key features?',
+      'limitations': 'What are the limitations of this plugin?',
+      'faq': 'What are the frequently asked questions?',
+      'troubleshooting': 'How do I troubleshoot common errors?',
+    };
+
+    // 1. Generate questions directly from the headings on this page
+    for (const heading of headings) {
+      const cleanHeading = heading.replace(/^[0-9.#\s]+/, '').trim();
+      const lower = cleanHeading.toLowerCase();
+
+      // Skip current site name or headings that are too long
+      if (lower === profile.name.toLowerCase() || cleanHeading.length > 50) {
+        continue;
+      }
+
+      // Check standard mappings
+      let mapped = false;
+      for (const [key, q] of Object.entries(headingMap)) {
+        if (lower === key || lower.includes(` ${key}`) || lower.startsWith(`${key} `)) {
+          if (!questions.includes(q)) {
+            questions.push(q);
+            mapped = true;
+            break;
           }
+        }
+      }
+      if (mapped) continue;
+
+      // Wrap heading in a natural question structure
+      if (cleanHeading.endsWith('?')) {
+        questions.push(cleanHeading);
+      } else if (/\b(how|why|what|where|who)\b/i.test(cleanHeading)) {
+        questions.push(cleanHeading + '?');
+      } else {
+        const words = cleanHeading.split(/\s+/).length;
+        if (words <= 3) {
+          questions.push(`What is ${cleanHeading}?`);
+        } else {
+          questions.push(`Tell me about ${cleanHeading}`);
         }
       }
     }
 
-    // 2. Add type-specific questions as fallbacks
-    const fallbackQuestions: string[] = [];
-    switch (profile.type) {
-      case 'library':
-        fallbackQuestions.push(
-          'How do I install this plugin?',
-          'Show me a basic configuration example',
-          'What are the key features?',
-          'What are the peer requirements?'
-        );
-        break;
-      case 'api':
-        fallbackQuestions.push(
-          'How do I initialize the API?',
-          'What configuration options are available?',
-          'Show me a basic code example',
-          'How do I handle errors?'
-        );
-        break;
-      case 'tool':
-        fallbackQuestions.push(
-          'How do I use the CLI command?',
+    // 2. Fallbacks based on site profile type if not enough headings on page
+    if (questions.length < count) {
+      const typeFallback: Record<SiteProfile['type'], string[]> = {
+        library: [
+          'How do I install this?',
+          'What are the main features?',
+          'Show me a basic example',
+          'How do I configure it?',
+          'What are the requirements?',
+        ],
+        framework: [
+          'How do I create a new project?',
+          'What is the project structure?',
+          'How does routing work?',
+          'Show me component examples',
+          'How do I deploy?',
+        ],
+        tool: [
+          'How do I use the CLI?',
           'What commands are available?',
           'Show me common workflows',
-          'How do I configure it?'
-        );
-        break;
-      case 'framework':
-        fallbackQuestions.push(
+          'How do I configure it?',
+          'What can this tool do?',
+        ],
+        api: [
+          'How do I authenticate?',
+          'What endpoints are available?',
+          'Show me a request example',
+          'What are the rate limits?',
+          'How do I handle errors?',
+        ],
+        guide: [
+          'What will I learn?',
+          'What are the prerequisites?',
+          'How long does it take?',
+          'Show me the first steps',
+          'Is there a quick start?',
+        ],
+        tutorial: [
+          'What is the goal of this tutorial?',
+          'Where do I start?',
+          'What are the steps involved?',
+        ],
+        product: [
+          'What are the key features of this product?',
+          'Is there a free trial?',
+          'Where can I find the pricing?',
+        ],
+        unknown: [
+          'What is this project about?',
           'How do I get started?',
-          'What is the project structure?',
-          'How do I deploy?'
-        );
-        break;
-      default:
-        fallbackQuestions.push(
-          'How do I get started?',
-          'What are the main features?',
-          'Show me configuration examples'
-        );
+          'Show me some examples',
+        ],
+      };
+
+      const fallbacks = typeFallback[profile.type] || typeFallback.unknown;
+      for (const q of fallbacks) {
+        if (questions.length >= count) break;
+        if (!questions.includes(q)) {
+          questions.push(q);
+        }
+      }
     }
 
-    for (const q of fallbackQuestions) {
-      questions.push(q);
-    }
-    
-    // Deduplicate questions (case-insensitive check)
+    // De-duplicate case-insensitively
     const uniqueQuestions: string[] = [];
     const seen = new Set<string>();
-    
     for (const q of questions) {
-      const normalized = q.toLowerCase().trim();
-      if (!seen.has(normalized)) {
-        seen.add(normalized);
+      const key = q.trim().toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
         uniqueQuestions.push(q);
       }
     }

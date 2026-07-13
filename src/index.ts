@@ -202,7 +202,7 @@ export default function DepthIndexPlugin(
                 } else if (process.env.NETLIFY_URL) {
                   siteUrl = process.env.NETLIFY_URL;
                 } else {
-                  siteUrl = 'https://your-docs.example.com';
+                  siteUrl = 'https://depthindex.vercel.app';
                 }
               }
               if (FreeDomainOptimizer.isFreeDomain(siteUrl)) {
@@ -432,7 +432,7 @@ export default function DepthIndexPlugin(
             } else if (process.env.NETLIFY_URL) {
               siteUrl = process.env.NETLIFY_URL;
             } else {
-              siteUrl = 'https://your-docs.example.com';
+              siteUrl = 'https://depthindex.vercel.app';
             }
           }
 

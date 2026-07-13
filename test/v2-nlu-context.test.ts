@@ -30,6 +30,35 @@ describe('DepthIndex 1.1.0 Site Context & NLU Intent Classification', () => {
       greeting.includes('Vite Press Plugin Depth Index')
     ).toBe(true);
 
+    // Test dynamic suggested questions fallback
+    const fallbackQuestions = engine.generateSuggestedQuestions();
+    expect(fallbackQuestions.length).toBe(5);
+    expect(fallbackQuestions[0]).toBe('How do I install this?');
+
+    vi.unstubAllGlobals();
+
+    // Now test with simulated headings
+    const mockH2 = { textContent: 'Installation' };
+    const mockH3 = { textContent: 'Hybrid Vector Search' };
+    vi.stubGlobal('document', {
+      querySelector: (selector: string) => {
+        if (selector.includes('h1')) return mockH1;
+        if (selector.includes('meta')) return mockMeta;
+        return null;
+      },
+      querySelectorAll: (selector: string) => {
+        if (selector.includes('h1,') || selector.includes('h2') || selector.includes('h3')) {
+          return [mockH2, mockH3];
+        }
+        return [];
+      }
+    });
+
+    const engineWithHeadings = new SiteContextEngine();
+    const headingQuestions = engineWithHeadings.generateSuggestedQuestions();
+    expect(headingQuestions.includes('How do I install this?')).toBe(true);
+    expect(headingQuestions.includes('What is Hybrid Vector Search?')).toBe(true);
+
     vi.unstubAllGlobals();
   });
 

@@ -4,11 +4,13 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
-## [1.1.2] - 2026-07-13
+## [1.1.3] - 2026-07-13
 
 ### Fixed
-- Smart suggested questions to prioritize dynamic, page-specific topics extracted from document headings instead of falling back to static/out-of-context template questions.
-- Replaced generic API authentication/endpoints fallback suggestions with library-appropriate alternatives.
+- **Context-aware suggested questions**: Suggestions are now generated dynamically from the actual headings of the currently viewed page, not from a static category guess. Each page now surfaces questions relevant to its own content (e.g., an installation page shows "How do I install this?", an API page shows "How do I authenticate?", etc.). Falls back to profile-type defaults only when the page has no headings.
+
+### Changed
+- `generateSuggestedQuestions()` now reads live DOM headings and maps them to natural language questions before falling back to type-based defaults.
 
 ## [1.1.1] - 2026-07-13
 
