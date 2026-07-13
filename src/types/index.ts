@@ -41,6 +41,52 @@ export interface SerializedIndex {
   invertedIndex: Record<string, [number, number][]>; // term -> Array of [chunkIndex, termFrequency]
 }
 
+export interface SEOConfig {
+  siteUrl?: string;          // Override default domain detection
+  siteName: string;
+  siteDescription: string;
+  author?: string;
+  twitterHandle?: string;
+  defaultImage?: string;     // Fallback OG image
+  locale?: string;
+  googleSiteVerification?: string;
+  bingSiteVerification?: string;
+  yandexVerification?: string;
+  customRobotsTxt?: string;  // Additional robots.txt rules
+  aiCrawlerPolicy?: 'allow' | 'disallow' | 'selective';
+  autoSubmitToGoogle?: boolean; // Hints for Google Indexing API
+  generateAISitemap?: boolean;  // Separate sitemap for AI crawlers
+}
+
+export interface MetaTagSet {
+  title: string;
+  description: string;
+  keywords: string;
+  canonical: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogUrl: string;
+  ogType: string;
+  ogImage: string;
+  ogSiteName: string;
+  ogLocale: string;
+  twitterCard: string;
+  twitterTitle: string;
+  twitterDescription: string;
+  twitterImage: string;
+  twitterHandle?: string;
+  aiContent: string;
+  aiIndex: string;
+  aiSection: string;
+  aiKeywords: string;
+  googleSiteVerification?: string;
+  bingSiteVerification?: string;
+  yandexVerification?: string;
+  robots: string;
+  googlebot: string;
+  structuredData: any;
+}
+
 export interface DepthIndexOptions {
   searchMode: 'on-device' | 'cloud' | 'hybrid';
   cloudAPI?: {
@@ -76,6 +122,8 @@ export interface DepthIndexOptions {
     formats: ('txt' | 'jsonl' | 'markdown')[];
     includeMetadata: boolean;
   };
+  seo?: SEOConfig;
+  extensions?: any[];
 }
 
 export interface SearchResult {

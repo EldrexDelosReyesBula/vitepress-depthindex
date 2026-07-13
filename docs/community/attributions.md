@@ -33,4 +33,4 @@ These libraries compile into the client-side package to power retrieval and comp
 * **[tsup](https://github.com/egoist/tsup)**: Zero-config bundler powered by esbuild. Compiles all TS modules into standard ESM and CommonJS packages.
 * **[TypeScript](https://github.com/microsoft/TypeScript)**: Typed superset of JavaScript, ensuring type safety and compile-time checks across the codebase.
 * **[Vitest](https://github.com/vitest-dev/vitest)**: High-performance unit testing framework. Runs indexing math checks, BM25 scorers, and the 1,000-page latency stress test.
-* **[devdiff](https://github.com/EldrexDelosReyesBula/devdiff)**: Git changes analysis and commit tracking helper.
+* **[devdiff](https://github.com/EldrexDelosReyesBula/devdiff)**: Git changes analysis, changelogs generation and commit tracking helper.

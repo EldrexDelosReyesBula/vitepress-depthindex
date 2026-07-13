@@ -1,102 +1,91 @@
 <template>
-  <div class="depthindex-suggestions" v-if="questions.length > 0">
-    <div class="suggestions-header">Suggested Questions</div>
-    <div class="suggestions-grid">
-      <button 
-        v-for="(q, idx) in questions" 
+  <div class="di-suggestions" v-if="questions.length > 0">
+    <div class="di-suggestions-label">
+      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      Suggested Questions
+    </div>
+    <div class="di-suggestions-grid">
+      <button
+        v-for="(q, idx) in questions"
         :key="idx"
-        class="suggestion-btn"
+        class="di-suggestion"
         @click="$emit('select', q)"
       >
-        <span class="suggestion-icon">✦</span>
-        <span class="suggestion-text">{{ q }}</span>
+        <svg class="di-suggestion-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <span>{{ q }}</span>
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  questions: string[];
-}>();
-
-defineEmits<{
-  (e: 'select', question: string): void;
-}>();
+defineProps<{ questions: string[] }>();
+defineEmits<{ (e: 'select', question: string): void }>();
 </script>
 
 <style scoped>
-.depthindex-suggestions {
+.di-suggestions {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 12px 0;
-  animation: fadeIn 0.3s ease;
+  animation: di-fadein 0.25s ease;
 }
 
-.suggestions-header {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--vp-c-text-2, #666);
+@keyframes di-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.suggestions-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-@media (min-width: 640px) {
-  .suggestions-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.suggestion-btn {
+.di-suggestions-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--vp-c-text-3, #999);
+}
+
+.di-suggestions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.di-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
   border-radius: 8px;
-  background-color: var(--vp-c-bg-soft, #f9f9fa);
-  border: 1px solid var(--vp-c-divider, rgba(60, 60, 60, 0.12));
+  background: var(--vp-c-bg-soft, #f6f6f7);
+  border: 1px solid var(--vp-c-divider, rgba(60,60,60,0.1));
   font-size: 12.5px;
   color: var(--vp-c-text-1, #3c3c3c);
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  line-height: 1.4;
 }
 
-.suggestion-btn:hover {
-  background-color: var(--vp-c-brand-dimm, rgba(62, 175, 124, 0.08));
+.di-suggestion:hover {
+  background: var(--vp-c-brand-dimm, rgba(62,175,124,0.07));
   border-color: var(--vp-c-brand, #3eaf7c);
   color: var(--vp-c-brand, #3eaf7c);
-  transform: translateX(2px);
 }
 
-.suggestion-icon {
-  font-size: 12px;
+.di-suggestion-icon {
+  flex-shrink: 0;
   color: var(--vp-c-brand, #3eaf7c);
+  transition: transform 0.15s;
 }
 
-.suggestion-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.di-suggestion:hover .di-suggestion-icon {
+  transform: translateX(2px);
 }
 </style>

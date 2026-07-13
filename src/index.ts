@@ -5,6 +5,7 @@ import { serializeAndCompressIndex } from './build/indexer.js';
 import fs from 'fs';
 import path from 'path';
 import { DepthIndexOptions } from './types/index.js';
+import { ComplianceEnforcer } from './sdk/compliance.js';
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
   searchMode: 'on-device',
@@ -35,6 +36,7 @@ const DEFAULT_OPTIONS: DepthIndexOptions = {
     formats: ['txt', 'jsonl'],
     includeMetadata: true,
   },
+  extensions: [],
 };
 
 export default function DepthIndexPlugin(
@@ -64,12 +66,57 @@ export default function DepthIndexPlugin(
       ...DEFAULT_OPTIONS.llmText,
       ...options.llmText,
     },
+    extensions: options.extensions || [],
+  };
+
+  // Split extensions into static (serializeable, like language packs) and client-only (which run in browser)
+  const clientExtensions: any[] = [];
+  
+  if (configOptions.extensions && Array.isArray(configOptions.extensions)) {
+    for (const ext of configOptions.extensions) {
+      if (ext.manifest) {
+        // Run compliance checks at build time
+        const mockRegPlugin = {
+          manifest: ext.manifest,
+          hooks: ext.hooks || {},
+          context: {} as any,
+          status: 'registered' as const,
+          registeredAt: Date.now()
+        };
+        const report = ComplianceEnforcer.validateAllPlugins([mockRegPlugin]);
+        if (!report.passed) {
+          report.violations.forEach(v => {
+            console.error(`[DepthIndex Build-Time Compliance Error] ${v.message}`);
+          });
+        }
+        
+        if (report.passed && report.disclosures.length > 0) {
+          const notice = ComplianceEnforcer.generateDisclosureNotice(report);
+          console.log(`[DepthIndex Build-Time Compliance Notice]\n${notice}`);
+        }
+      }
+      
+      // If it is a language pack (static), serialize it
+      if (ext.type === 'language' && ext.pack) {
+        clientExtensions.push({
+          type: 'language',
+          pack: ext.pack
+        });
+      }
+    }
+  }
+
+  // Create serializable config options
+  const serializableConfig = {
+    ...configOptions,
+    extensions: clientExtensions
   };
 
   let srcDir = '';
   let outDir = '';
   let pages: string[] = [];
   let isBuild = false;
+  let seoOutput: any = null;
 
   const virtualModuleId = 'virtual:depthindex-client';
   const resolvedVirtualModuleId = '\0' + virtualModuleId;
@@ -77,10 +124,22 @@ export default function DepthIndexPlugin(
   return {
     name: 'vitepress-depthindex',
 
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.endsWith('.worker.js') || req.url?.includes('search-worker')) {
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+          res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+        }
+        next();
+      });
+    },
+
+
     config() {
       return {
         define: {
-          __DEPTHINDEX_OPTIONS__: JSON.stringify(configOptions)
+          __DEPTHINDEX_OPTIONS__: JSON.stringify(serializableConfig)
         }
       };
     },
@@ -98,6 +157,66 @@ export default function DepthIndexPlugin(
         if (vpConfig.pages) {
           pages = vpConfig.pages;
         }
+
+        // Intercept VitePress transformHtml hook
+        const originalTransformHtml = vpConfig.transformHtml;
+        vpConfig.transformHtml = async (html: string, id: string, ctx: any) => {
+          let transformed = html;
+          if (originalTransformHtml) {
+            transformed = await originalTransformHtml(html, id, ctx);
+          }
+          
+          if (configOptions.seo && seoOutput) {
+            const relativePath = '/' + path.relative(outDir, id).replace(/\\/g, '/');
+            let urlKey = relativePath;
+            if (urlKey.endsWith('/index.html')) {
+              urlKey = urlKey.substring(0, urlKey.length - 10);
+            }
+            if (urlKey === '/index.html') {
+              urlKey = '/';
+            }
+            
+            const metaTags = seoOutput.pageMetaTags.get(urlKey);
+            if (metaTags) {
+              const { MetaTagInjector } = await import('./build/meta-injector.js');
+              const { FreeDomainOptimizer } = await import('./build/free-domain-seo.js');
+              
+              const metaInjector = new MetaTagInjector();
+              transformed = metaInjector.injectMetaTags(transformed, metaTags);
+              
+              // Free domain boost
+              let siteUrl = configOptions.seo.siteUrl;
+              if (!siteUrl) {
+                if (process.env.VERCEL_URL) {
+                  siteUrl = `https://${process.env.VERCEL_URL}`;
+                } else if (process.env.NETLIFY_URL) {
+                  siteUrl = process.env.NETLIFY_URL;
+                } else {
+                  siteUrl = 'https://your-docs.example.com';
+                }
+              }
+              if (FreeDomainOptimizer.isFreeDomain(siteUrl)) {
+                const boost = FreeDomainOptimizer.generateFreeDomainBoost({
+                  siteUrl,
+                  siteName: configOptions.seo.siteName,
+                  description: configOptions.seo.siteDescription
+                });
+                if (transformed.includes('</head>')) {
+                  transformed = transformed.replace('</head>', `${boost.additionalMeta}\n${boost.socialSignals}\n</head>`);
+                }
+                if (transformed.includes('</body>')) {
+                  transformed = transformed.replace('</body>', `${boost.submissionGuide}\n</body>`);
+                }
+              }
+            }
+
+            if (urlKey === '/' && seoOutput.submissionHints) {
+              transformed = transformed.replace('</body>', `${seoOutput.submissionHints}\n</body>`);
+            }
+          }
+          
+          return transformed;
+        };
       } else {
         // Fallback for non-VitePress environment
         srcDir = config.root;
@@ -144,13 +263,29 @@ export default function DepthIndexPlugin(
     },
 
     transformIndexHtml(html: string) {
-      // Injects client script and style tags into the HTML output
-      // Only do this in build mode or let it resolve in dev server
       const scriptTag = `<script type="module" src="/@depthindex/client.js"></script>`;
-      if (html.includes('</body>')) {
-        return html.replace('</body>', `${scriptTag}\n</body>`);
+      let processed = html;
+      
+      // Inject Client script
+      if (!processed.includes('/@depthindex/client.js')) {
+        if (processed.includes('</body>')) {
+          processed = processed.replace('</body>', `${scriptTag}\n</body>`);
+        } else {
+          processed = processed + scriptTag;
+        }
       }
-      return html + scriptTag;
+      
+      // Inject KaTeX CSS
+      if (!processed.includes('katex@0.16.9/dist/katex.min.css')) {
+        const katexLink = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">`;
+        if (processed.includes('</head>')) {
+          processed = processed.replace('</head>', `${katexLink}\n</head>`);
+        } else {
+          processed = `<head>${katexLink}</head>` + processed;
+        }
+      }
+      
+      return processed;
     },
 
     async generateBundle() {
@@ -163,17 +298,17 @@ export default function DepthIndexPlugin(
 
         this.emitFile({
           type: 'asset',
-          fileName: 'assets/depth-index.json.gz',
+          fileName: 'assets/depth-index.json',
           source: compressed,
         });
-        console.log('[depthindex] Index written successfully to assets/depth-index.json.gz');
+        console.log('[depthindex] Index written successfully to assets/depth-index.json');
 
         if (configOptions.offline.enabled) {
           const swContent = `
             const CACHE_NAME = 'depthindex-cache-v1';
             const ASSETS_TO_CACHE = [
               '/',
-              '/assets/depth-index.json.gz'
+              '/assets/depth-index.json'
             ];
 
             self.addEventListener('install', event => {
@@ -257,6 +392,55 @@ export default function DepthIndexPlugin(
           });
           console.log('[depthindex] Service worker emitted successfully.');
         }
+
+        // SEO Generation
+        if (configOptions.seo) {
+          console.log('[depthindex] Generating SEO artifacts...');
+          const { SEOOptimizer } = await import('./build/seo-optimizer.js');
+          
+          let siteUrl = configOptions.seo.siteUrl;
+          if (!siteUrl) {
+            if (process.env.VERCEL_URL) {
+              siteUrl = `https://${process.env.VERCEL_URL}`;
+            } else if (process.env.NETLIFY_URL) {
+              siteUrl = process.env.NETLIFY_URL;
+            } else {
+              siteUrl = 'https://your-docs.example.com';
+            }
+          }
+
+          const seoOptimizer = new SEOOptimizer({
+            ...configOptions.seo,
+            siteUrl,
+          });
+
+          const { extractAllPages } = await import('./build/extractor.js');
+          const extracted = await extractAllPages(pages, srcDir);
+          
+          seoOutput = await seoOptimizer.optimize(extracted, outDir);
+
+          // Emit SEO files
+          for (const [filename, content] of Object.entries(seoOutput.files)) {
+            this.emitFile({
+              type: 'asset',
+              fileName: filename,
+              source: content as string,
+            });
+          }
+
+          // Emit submission hints
+          this.emitFile({
+            type: 'asset',
+            fileName: 'assets/seo-submission-hints.html',
+            source: seoOutput.submissionHints as string,
+          });
+
+          console.log('[depthindex] SEO optimization complete!');
+          console.log(`  • sitemap.xml — ${extracted.length} URLs indexed`);
+          console.log(`  • robots.txt — AI crawlers: ${configOptions.seo.aiCrawlerPolicy || 'allow'}`);
+          console.log(`  • llms.txt — Full text for AI training`);
+          console.log(`  • .well-known/ai.json — AI discoverability endpoint`);
+        }
       } catch (err) {
         console.error('[depthindex] Failed to generate search index:', err);
       }
@@ -271,11 +455,13 @@ export default function DepthIndexPlugin(
         const scriptTag = `<script type="module" src="/@depthindex/client.js"></script>`;
         injectScriptIntoHtmlFiles(outDir, scriptTag);
 
-        // 2. Generate LLM files
+        // 2. Extract pages content
+        const { extractAllPages } = await import('./build/extractor.js');
+        const extracted = await extractAllPages(pages, srcDir);
+
+        // 3. Generate LLM files
         if (configOptions.llmText.enabled) {
           console.log('[depthindex] Generating LLMs.txt files...');
-          const { extractAllPages } = await import('./build/extractor.js');
-          const extracted = await extractAllPages(pages, srcDir);
           await generateLLMText(extracted, configOptions, outDir);
           console.log('[depthindex] LLMs.txt files generated in outDir');
         }
@@ -296,12 +482,82 @@ function injectScriptIntoHtmlFiles(dir: string, scriptTag: string): void {
       injectScriptIntoHtmlFiles(fullPath, scriptTag);
     } else if (file.endsWith('.html')) {
       let content = fs.readFileSync(fullPath, 'utf-8');
+      let modified = false;
+      
       if (!content.includes('/@depthindex/client.js')) {
         if (content.includes('</body>')) {
           content = content.replace('</body>', `${scriptTag}\n</body>`);
         } else {
           content = content + scriptTag;
         }
+        modified = true;
+      }
+      
+      if (!content.includes('katex@0.16.9/dist/katex.min.css')) {
+        const katexLink = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">`;
+        if (content.includes('</head>')) {
+          content = content.replace('</head>', `${katexLink}\n</head>`);
+        } else {
+          content = katexLink + content;
+        }
+        modified = true;
+      }
+      
+      if (modified) {
+        fs.writeFileSync(fullPath, content, 'utf-8');
+      }
+    }
+  });
+}
+
+function injectSEOMetaIntoHtmlFiles(
+  dir: string,
+  pageMetaTags: Map<string, any>,
+  boost: { additionalMeta: string; socialSignals: string; submissionGuide: string } | null,
+  metaInjector: any,
+  baseDir: string = dir
+): void {
+  if (!fs.existsSync(dir)) return;
+  const list = fs.readdirSync(dir);
+  
+  list.forEach((file: string) => {
+    const fullPath = path.resolve(dir, file);
+    const stat = fs.statSync(fullPath);
+    if (stat && stat.isDirectory()) {
+      injectSEOMetaIntoHtmlFiles(fullPath, pageMetaTags, boost, metaInjector, baseDir);
+    } else if (file.endsWith('.html')) {
+      let relativePath = '/' + path.relative(baseDir, fullPath).replace(/\\/g, '/');
+      
+      let metaTags = pageMetaTags.get(relativePath);
+      
+      if (!metaTags && relativePath === '/index.html') {
+        metaTags = pageMetaTags.get('/');
+      }
+      
+      if (!metaTags) {
+        let cleanKey = relativePath;
+        if (cleanKey.endsWith('/index.html')) {
+          cleanKey = cleanKey.substring(0, cleanKey.length - 10);
+        }
+        metaTags = pageMetaTags.get(cleanKey);
+      }
+      
+      if (metaTags) {
+        let content = fs.readFileSync(fullPath, 'utf-8');
+        
+        // Inject SEO Meta tags
+        content = metaInjector.injectMetaTags(content, metaTags);
+        
+        // Inject Free Domain Boost if applicable
+        if (boost) {
+          if (content.includes('</head>')) {
+            content = content.replace('</head>', `${boost.additionalMeta}\n${boost.socialSignals}\n</head>`);
+          }
+          if (content.includes('</body>')) {
+            content = content.replace('</body>', `${boost.submissionGuide}\n</body>`);
+          }
+        }
+        
         fs.writeFileSync(fullPath, content, 'utf-8');
       }
     }

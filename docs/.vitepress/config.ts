@@ -15,6 +15,14 @@ export default defineConfig({
           enabled: true,
           formats: ['txt', 'jsonl', 'markdown'],
           includeMetadata: true
+        },
+        seo: {
+          siteName: 'VitePress DepthIndex',
+          siteDescription: 'On-device intelligence layer for VitePress documentation',
+          author: 'Eldrex Delos Reyes Bula',
+          twitterHandle: '@eldrex_dev',
+          aiCrawlerPolicy: 'allow',
+          generateAISitemap: true
         }
       })
     ]
@@ -34,6 +42,9 @@ export default defineConfig({
           { text: 'Installation', link: '/guide/installation' },
           { text: 'Configuration', link: '/guide/configuration' },
           { text: 'How It Works', link: '/guide/how-it-works' },
+          { text: 'Limitations & Use Cases', link: '/guide/limitations' },
+          { text: 'Plugin SDK', link: '/guide/plugin-sdk' },
+          { text: 'Translation & i18n', link: '/guide/i18n' },
           { text: 'FAQ & Troubleshooting', link: '/guide/faq' }
         ]
       },
@@ -64,7 +75,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/' }
+      { icon: 'github', link: 'https://github.com/EldrexDelosReyesBula/vitepress-depthindex' }
     ]
   }
 });

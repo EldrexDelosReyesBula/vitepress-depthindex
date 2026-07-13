@@ -1,30 +1,41 @@
 {
   "name": "vitepress-plugin-depthindex",
-  "version": "1.0.0",
-  "description": "On-device intelligence layer for VitePress documentation",
+  "version": "1.1.0",
+  "description": "On-device intelligence layer for VitePress documentation — offline-first AI search engine",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
-    "./client": {
-      "types": "./dist/client.d.ts",
-      "require": "./dist/client.js",
-      "import": "./dist/client.mjs"
-    }
+    "./sdk": {
+      "types": "./dist/sdk/index.d.ts",
+      "import": "./dist/sdk/index.js",
+      "require": "./dist/sdk/index.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
-    "client.d.ts"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/client/index-loader.ts src/client/search-engine.ts src/client/query-processor.ts src/client/cloud-adapter.ts src/client/personalization.ts src/client/pwa-handler.ts --dts --format esm,cjs --external vue,vitepress",
-    "dev": "tsup src/index.ts --watch",
+    "build": "tsup src/index.ts src/client/index-loader.ts src/client/search-engine.ts src/client/query-processor.ts src/client/cloud-adapter.ts src/client/personalization.ts src/client/pwa-handler.ts src/client/session-manager.ts src/client/conversation-handler.ts src/client/page-context.ts src/client/renderers.ts src/client/performance.ts src/client/search-worker.ts src/client/error-handler.ts src/client/security.ts src/config/env.ts src/client/legal-notices.ts src/client/pii-detector.ts src/build/compliance-generator.ts src/client/answer-synthesizer.ts src/build/seo-optimizer.ts src/build/meta-injector.ts src/build/free-domain-seo.ts src/client/branding.ts src/client/icons.ts src/client/site-context.ts src/client/intent-engine.ts src/sdk/index.ts src/sdk/compliance.ts src/extensions/i18n/index.ts src/extensions/cloud/index.ts --dts --format esm,cjs --external vue,vitepress --clean",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "audit": "npm audit",
+    "audit:fix": "npm audit fix",
+    "prepublishOnly": "npm run build && npm run test && npm run typecheck && npm run audit",
+    "release": "npm run build && npm publish",
     "docs:dev": "vitepress dev docs",
     "docs:build": "npm run build && vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -62,10 +73,15 @@
     "@vue/compiler-sfc": "^3.3.0",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
-    "vite": "^5.0.0",
+    "vite": "^6.4.3",
     "vitepress": "^1.0.0",
-    "vitest": "^1.0.0",
+    "vitest": "^3.2.7",
     "vue": "^3.3.0"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "esbuild": "^0.25.0",
+    "launch-editor": "^2.9.2",
+    "vite": "^6.4.3"
+  }
 }

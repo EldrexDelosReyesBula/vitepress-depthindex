@@ -5,7 +5,7 @@ let cachedIndex: SerializedIndex | null = null;
 let isLoading = false;
 let loadPromise: Promise<SerializedIndex> | null = null;
 
-export async function fetchAndDecompressIndex(indexUrl: string = '/assets/depth-index.json.gz'): Promise<SerializedIndex> {
+export async function fetchAndDecompressIndex(indexUrl: string = '/assets/depth-index.json'): Promise<SerializedIndex> {
   if (cachedIndex) {
     return cachedIndex;
   }

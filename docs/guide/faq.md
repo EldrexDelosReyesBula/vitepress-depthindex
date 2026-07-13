@@ -39,6 +39,21 @@ This section covers common errors, platform limitations, security configurations
   npm install -D @types/node
   ```
 
+### Error: "listen EADDRINUSE: address already in use :::4173"
+* **Why it happens**: When running `npm run docs:preview` (or `vitepress preview docs`), another active local development server or background process is already listening on the default preview port (`4173`).
+* **Resolution**: Run the preview server on a different free port by appending the port argument:
+  ```bash
+  npm run docs:preview -- --port 4175
+  ```
+
+### Error: "DataCloneError: object could not be cloned"
+* **Why it happens**: Browser database engines (`IndexedDB`) require stored objects to contain strictly *structured cloneable* data. Passing raw Vue reactive proxies or callback functions directly to IndexedDB object stores throws a clone exception.
+* **Resolution**: DepthIndex automatically sanitizes data and unwraps Vue proxies before IndexedDB persistence. If you are developing custom plugins that write to IndexedDB, sanitize custom structures using `toRaw()` or a JSON serialization fallback.
+
+### Behavior: Consent Dialog before Error Report Redirections
+* **Why it happens**: To respect user privacy and prevent unexpected outbound traffic, DepthIndex prompts the user with a confirmation dialog before writing error metadata to the clipboard and launching external issue tracker pages.
+* **Resolution**: Users can click "OK" to approve the redirection or "Cancel" to dismiss.
+
 ---
 
 ## 2. Limitations

@@ -4,6 +4,58 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.1.0] - 2026-07-13
+
+### Added
+- Core Plugin SDK (`src/sdk/index.ts`) supporting sandbox localStorage and plugin lifecycle registry
+- Compliance Enforcer (`src/sdk/compliance.ts`) verifying plugin permissions and data disclosure compliance
+- Bilingual Translation Engine (`src/extensions/i18n/index.ts`) with English (`en`) and Tagalog (`tl`) packs
+- Message editing and query resending capabilities for user messages in the chat interface
+- User confirmation prompt before writing error details to clipboard and opening external GitHub issues pages
+- Fully translated settings and configuration panel (`CloudConfigPanel.vue`)
+- SVG icon system replacing all emoji icons in UI
+- YouTube video embed support with lazy-loaded iframes
+- Image rendering with lightbox and error fallback
+- Video player for MP4/WebM files
+- Device detection for low/medium/high performance profiles
+- Chunked index loading for better memory management
+- `SECURITY.md` with vulnerability reporting process
+- Supply chain security improvements (`npm audit` in prepublish)
+- Package name corrected to `vitepress-plugin-depthindex` everywhere
+- "Powered by DepthIndex" attribution enforcement
+- `overrides` in package.json for CVE mitigation
+- "Limitations & Use Cases" documentation page in the VitePress sidebar guide
+- Loading animation stages (Thinking, Analyzing, Generating) for the page summarization action
+
+### Changed
+- Default error reporting target repository updated to `EldrexDelosReyesBula/vitepress-depthindex`
+- Animations now persist across all query types (summarize, follow-ups)
+- Error reporting: shows copy fallback instead of auto-redirecting to GitHub
+- IndexedDB operations sanitize Vue proxies before storage
+- Quota exceeded handler cleans old sessions automatically
+- Progress indicators show percentage and stage messages
+
+### Fixed
+- Code block Copy button JavaScript code leak by separating HTML SVG icons from the onclick attribute context
+- KaTeX math horizontal layout collapse by preloading and auto-injecting `katex.min.css` dynamically in Vite server and compiling it into static HTML output files
+- Chat panel context banner "Viewing" title made a clickable link routing to the active page context
+- Related topics made into clickable Markdown links pointing to documentation pages
+- Citation reference links sanitized to remove `.md` extensions for clean routing
+- TypeScript compilation type errors resolved by separating submit event signatures from inner query execution routines
+- Mandatory user confirmation check enforced before any automatic error reporting redirection or issue page submission triggers
+- `DataCloneError` when storing messages with Vue reactive properties
+- Error report redirecting users without GitHub permissions
+- Loading animations disappearing after page summarize
+- Regex global flag safety for all PII detection patterns
+- Citation navigation with proper anchor IDs
+- Thread safety for concurrent async answer synthesis
+
+### Security
+- Added `SECURITY.md` with disclosure policy
+- High CVE dependency flagged for override
+- All npm audit checks pass before publish
+- Regular dependency audits enforced via `prepublishOnly`
+
 ## [1.0.0] - 2026-07-12
 Initial production release of VitePress DepthIndex, an offline-first, local-first search and reasoning engine for VitePress documentation sites. Created and maintained by **Eldrex Delos Reyes Bula**.
 

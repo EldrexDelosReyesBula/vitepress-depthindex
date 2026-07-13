@@ -24,7 +24,7 @@
     />
 
     <!-- AI Chat Panel -->
-    <ChatPanel
+    <DepthIndexPanel
       v-if="isChatOpen"
       :is-open="isChatOpen"
       :engine="engine"
@@ -43,7 +43,7 @@ import { PersonalizationEngine } from '../client/personalization.js';
 import { fetchAndDecompressIndex } from '../client/index-loader.js';
 import { registerServiceWorker } from '../client/pwa-handler.js';
 import SearchModal from './SearchModal.vue';
-import ChatPanel from './ChatPanel.vue';
+import DepthIndexPanel from './DepthIndexPanel.vue';
 
 const props = defineProps<{
   options: any;
