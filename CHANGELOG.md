@@ -4,6 +4,20 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.1.4] - 2026-07-13
+
+### Fixed
+- **Citation HTML rendered as raw text**: The markdown renderer now extracts and protects existing HTML tags (`<sup>`, `<div>`, `<a>`, etc.) before passing content through the inline formatter. This ensures citation superscripts inserted by `insertCitations()` are correctly preserved and rendered in the panel, not displayed as raw `<sup><a href=...>` text.
+- **`[object Object]` in Related Topics**: Heading entries in the search index that are stored as objects instead of plain strings are now correctly coerced to strings via `.text`, `.title`, or `String()` fallbacks before being added to the Related Topics list.
+- **Citation HTML attributes visible in output**: The `insertCitations()` method now generates compact, single-line `<sup><a class="cite">` HTML. Removed multi-line template literals and the `data-citation` attribute that were appearing as visible text.
+- **Confidence score too low (43%)**: Rewrote the confidence formula. New formula: base (30% when any results exist) + source diversity (0–25%) + relevance score (0–35%) + content richness (code/headings/length) + cluster bonus. Typical responses now show 65–85% instead of 40–50%.
+- **Greeting shows internal site classification**: Removed "This appears to be a **api** for **technical users**" from greeting variants. All three greeting templates now use friendly, user-facing language without exposing internal `profile.type` or `profile.targetAudience` values.
+- **Removed duplicate `.references-section` CSS**: Consolidated citation and reference styles into the `<style>` block of `DepthIndexPanel.vue`, adding `.cite`, `.cite:hover`, `.reference-item:target` highlight, and correct `scroll-margin-top`.
+
+### Changed
+- Citation HTML class renamed from `citation-link` to `cite` for shorter, cleaner markup.
+- `calculateConfidence` now adds a 30% base score whenever results are found, ensuring the displayed confidence accurately reflects information availability.
+
 ## [1.1.3] - 2026-07-13
 
 ### Fixed

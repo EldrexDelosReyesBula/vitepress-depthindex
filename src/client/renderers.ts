@@ -125,6 +125,19 @@ export class ContentRenderer {
     const blocks: RenderBlock[] = [];
     let processed = text;
 
+    // Phase 0: Extract existing HTML blocks/inline elements to protect them
+    // This covers citation <sup><a...> tags, reference <div> sections, etc.
+    const htmlProtected: Map<string, string> = new Map();
+    let htmlIdx = 0;
+    processed = processed.replace(
+      /<(sup|div|span|ol|ul|li|h[1-6]|blockquote|hr|pre|code|strong|em|del|a|img|br|p)(\s[^>]*)?>([\s\S]*?)<\/\1>|<(br|hr|img)(\s[^>]*)?\/?>/gi,
+      (match) => {
+        const key = `__HTML_${htmlIdx++}__`;
+        htmlProtected.set(key, match);
+        return key;
+      }
+    );
+
     // Phase 1: Extract block-level special components (protect them from inline rendering)
     processed = this.extractMermaidBlocks(processed, blocks);
     processed = this.extractMathBlocks(processed, blocks);
@@ -140,6 +153,12 @@ export class ContentRenderer {
 
     // Phase 3: Restore async blocks (code, mermaid, math)
     rendered = await this.replaceAsyncBlocks(rendered, blocks);
+
+    // Phase 4: Restore protected HTML
+    for (const [key, val] of htmlProtected) {
+      // Escape the key for use in a string replace
+      rendered = rendered.split(key).join(val);
+    }
 
     return rendered;
   }
@@ -269,12 +288,26 @@ export class ContentRenderer {
   }
 
   /**
-   * Renders inline Markdown: bold, italic, strikethrough, inline code, links, math
+   * Renders inline Markdown: bold, italic, strikethrough, inline code, links, math.
+   * Existing HTML tags (like citation <sup> elements) are protected before processing.
    */
   private renderInline(text: string): string {
     let s = text;
 
-    // Protect inline code first (avoid applying other formatting inside)
+    // 0. Protect existing HTML tags from being mangled by markdown rules
+    const htmlMap: Record<string, string> = {};
+    s = s.replace(
+      /<(sup|sub|strong|em|del|code|a|span|div|br)(\s[^>]*)?>([\s\S]*?)<\/\1>|<__HTML_\d+__>|__HTML_\d+__|<(br|hr|img)(\s[^>]*)?\/?>/gi,
+      (match) => {
+        // Pass through __HTML_N__ placeholders untouched
+        if (match.startsWith('__HTML_')) return match;
+        const key = `__INLINEHTML_${Object.keys(htmlMap).length}__`;
+        htmlMap[key] = match;
+        return key;
+      }
+    );
+
+    // 1. Protect inline code first (avoid applying other formatting inside)
     const inlineCodeMap: Record<string, string> = {};
     s = s.replace(/`([^`]+)`/g, (_, code) => {
       const key = `__ICODE_${Object.keys(inlineCodeMap).length}__`;
@@ -282,12 +315,12 @@ export class ContentRenderer {
       return key;
     });
 
-    // Inline math $...$
+    // 2. Inline math $...$
     s = s.replace(/\$([^$\n]+?)\$/g, (_, expr) => {
       return this.renderMathSync(expr.trim());
     });
 
-    // Bold+italic ***text***
+    // 3. Bold+italic ***text***
     s = s.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
     // Bold **text**
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -297,7 +330,7 @@ export class ContentRenderer {
     // Strikethrough ~~text~~
     s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
-    // Links [text](url) — internal doc links get router-friendly class
+    // 4. Links [text](url) — internal doc links get router-friendly class
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
       const isInternal = url.startsWith('/') && !url.startsWith('//');
       if (isInternal) {
@@ -309,6 +342,11 @@ export class ContentRenderer {
     // Restore inline code
     for (const [key, val] of Object.entries(inlineCodeMap)) {
       s = s.replace(key, val);
+    }
+
+    // Restore protected HTML
+    for (const [key, val] of Object.entries(htmlMap)) {
+      s = s.split(key).join(val);
     }
 
     return s;

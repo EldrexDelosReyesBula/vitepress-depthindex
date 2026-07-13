@@ -1733,4 +1733,65 @@ a.source-pill:hover { border-color: var(--vp-c-brand, #3eaf7c); color: var(--vp-
   text-decoration: underline;
   opacity: 0.8;
 }
+/* Citation superscript links */
+.cite {
+  color: var(--vp-c-brand, #3eaf7c);
+  text-decoration: none;
+  font-size: 0.72em;
+  font-weight: 600;
+  vertical-align: super;
+  line-height: 0;
+  padding: 0 1px;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+.cite:hover {
+  background: rgba(62, 175, 124, 0.12);
+  text-decoration: underline;
+}
+/* Reference list at bottom of answer */
+.references-section {
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: var(--vp-c-bg-soft, #f6f6f7);
+  border-radius: 8px;
+  border: 1px solid var(--vp-c-divider, #e2e2e3);
+}
+.references-section h4 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vp-c-text-3, #767676);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px 0;
+}
+.references-list {
+  margin: 0;
+  padding-left: 18px;
+  list-style-type: decimal;
+}
+.reference-item {
+  font-size: 12px;
+  color: var(--vp-c-text-2, #4c4c4c);
+  margin-bottom: 4px;
+  scroll-margin-top: 80px;
+}
+.reference-item:target {
+  background: rgba(62, 175, 124, 0.08);
+  border-radius: 4px;
+}
+.ref-link {
+  color: var(--vp-c-brand, #3eaf7c) !important;
+  text-decoration: none;
+  font-weight: 500;
+}
+.ref-link:hover {
+  text-decoration: underline;
+}
+.ref-section {
+  color: var(--vp-c-text-3, #767676);
+  font-size: 0.9em;
+  margin-left: 4px;
+}
 </style>
+

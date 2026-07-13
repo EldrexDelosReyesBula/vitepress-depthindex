@@ -651,33 +651,27 @@ export class AnswerSynthesizer {
   private insertCitations(content: string, citations: Citation[], requestId: string = 'static'): string {
     let processed = content;
     
-    // Replace [^1] and [1] style citations
+    // Replace [^1] and [1] style citations with compact single-line HTML
     processed = processed.replace(
       /\[\^?(\d+(?:,\d+)*)\]/g,
       (match, nums) => {
         const indices = nums.split(',').map((n: string) => parseInt(n.trim(), 10));
         
-        return indices.map((index: number) => {
+        const parts = indices.map((index: number) => {
           const citation = citations.find(c => c.index === index);
           if (!citation) return match;
-          
           const targetId = `cite-ref-${index}-${requestId}`;
-          
-          // Clean superscript style — no brackets, no dashes
-          return `<sup><a href="#${targetId}" 
-            class="citation-link"
-            data-citation="${index}"
-            title="${this.escapeAttr(citation.title)}"
-          >${index}</a></sup>`;
-        }).join('<sup>,</sup>');
+          // Compact single-line — no extra attributes visible in DOM text
+          return `<sup><a href="#${targetId}" class="cite" title="${this.escapeAttr(citation.title)}">${index}</a></sup>`;
+        });
+        
+        return parts.join('');
       }
     );
     
-    // Clean up any double superscripts
-    processed = processed.replace(/<\/sup><sup>,<\/sup><sup>/g, ',');
-    
     return processed;
   }
+
 
   generateReferencesSection(citations: Citation[], requestId?: string): string {
     if (citations.length === 0) return '';
@@ -951,20 +945,30 @@ export class AnswerSynthesizer {
     
     if (allResults.length === 0) return 0;
     
+    // 1. Source diversity: reward multiple unique source pages
     const uniqueSources = new Set(allResults.map(r => r.page.url)).size;
-    const sourceScore = Math.min(uniqueSources / 3, 1) * 0.3;
+    const sourceScore = Math.min(uniqueSources / 3, 1) * 0.25;
     
-    const avgScore = allResults.reduce((sum, r) => sum + r.score, 0) / allResults.length;
-    const relevanceScore = Math.min(avgScore, 1) * 0.4;
+    // 2. Relevance score: average search score across results
+    const avgScore = allResults.reduce((sum, r) => sum + (r.score || 0), 0) / allResults.length;
+    const relevanceScore = Math.min(avgScore, 1) * 0.35;
     
+    // 3. Content richness bonuses
     const hasCode = allResults.some(r => r.codeBlocks && r.codeBlocks.length > 0);
-    const hasSteps = allResults.some(r => {
-      const mockCtx = { usedSnippets: new Set<string>() } as any;
-      return this.extractSteps(r, mockCtx).length > 0;
-    });
-    const richnessScore = ((hasCode ? 0.15 : 0) + (hasSteps ? 0.15 : 0));
+    const hasHeadings = allResults.some(r => r.headings && r.headings.length > 1);
+    const hasLongContent = allResults.some(r => ((r.fullContent?.length || 0) + (r.snippet?.length || 0)) > 200);
+    const richness = (hasCode ? 0.12 : 0) + (hasHeadings ? 0.10 : 0) + (hasLongContent ? 0.08 : 0);
     
-    return Math.round((sourceScore + relevanceScore + richnessScore) * 100) / 100;
+    // 4. Cluster count (multiple topic clusters = more comprehensive answer)
+    const clusterBonus = Math.min(clusters.size / 4, 1) * 0.10;
+    
+    // 5. Base confidence: always give at least 0.30 when we found any results
+    const base = allResults.length > 0 ? 0.30 : 0;
+    
+    const total = base + sourceScore + relevanceScore + richness + clusterBonus;
+    
+    // Clamp to 0.95 max (never claim 100% confidence)
+    return Math.min(Math.round(total * 100), 95) / 100;
   }
   
   private extractRelatedTopics(
@@ -975,18 +979,28 @@ export class AnswerSynthesizer {
     const queryTerms = this.extractKeyTerms(query);
     
     for (const [topic, results] of clusters) {
-      if (!queryTerms.some(t => topic.toLowerCase().includes(t.toLowerCase()))) {
+      // Ensure topic key is a string
+      const topicStr = typeof topic === 'string' ? topic : String(topic);
+      if (topicStr && !queryTerms.some(t => topicStr.toLowerCase().includes(t.toLowerCase()))) {
         const firstResult = results[0];
         if (firstResult) {
-          topics.set(topic, firstResult.page.url);
+          topics.set(topicStr, firstResult.page.url);
         }
       }
       
       for (const result of results) {
         if (result.headings) {
           for (const heading of result.headings) {
-            if (!queryTerms.some(t => heading.toLowerCase().includes(t.toLowerCase()))) {
-              topics.set(heading, result.page.url);
+            // Coerce heading to string — it might be an object in some index formats
+            const headingStr = typeof heading === 'string'
+              ? heading
+              : (heading as any)?.text || (heading as any)?.title || String(heading);
+            const cleaned = String(headingStr).trim();
+            if (cleaned && cleaned.length > 2 &&
+                !queryTerms.some(t => cleaned.toLowerCase().includes(t.toLowerCase()))) {
+              if (!topics.has(cleaned)) {
+                topics.set(cleaned, result.page.url);
+              }
             }
           }
         }
@@ -994,8 +1008,9 @@ export class AnswerSynthesizer {
     }
     
     return Array.from(topics.entries())
+      .filter(([title]) => title && title.trim().length > 2)
       .slice(0, 5)
-      .map(([title, url]) => ({ title, url }));
+      .map(([title, url]) => ({ title: String(title).trim(), url }));
   }
   
   private buildCloudContext(

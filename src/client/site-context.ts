@@ -357,16 +357,21 @@ export class SiteContextEngine {
   generateGreeting(): string {
     const profile = this.detectSiteProfile();
     
+    const topicsSnippet = profile.topics.length > 0
+      ? profile.topics.slice(0, 3).join(', ')
+      : 'the documentation';
+    
     const greetings = [
-      `Hello! 👋 I'm your AI assistant for **${profile.name}**. I've read through all the documentation and can help you understand ${profile.topics.slice(0, 3).join(', ')}${profile.topics.length > 3 ? ', and more' : ''}. What would you like to learn?`,
+      `Hello! 👋 I'm your AI assistant for **${profile.name}**. I've read through all the documentation and can help you understand ${topicsSnippet}${profile.topics.length > 3 ? ', and more' : ''}. What would you like to learn?`,
       
-      `Hi there! I'm here to help with **${profile.name}** documentation — ${profile.description.substring(0, 100)}...\n\nI can help you with:\n${profile.topics.slice(0, 4).map(t => `• ${t}`).join('\n')}\n\nJust ask me anything!`,
+      `Hi there! I'm here to help with **${profile.name}** — ask me anything about the docs.\n\nI can help you with:\n${profile.topics.slice(0, 4).map(t => `• ${t}`).join('\n')}`,
       
-      `Hey! Welcome to **${profile.name}** documentation! 🎯\n\nI've analyzed these docs and I'm ready to help. This appears to be a **${profile.type}** for **${profile.targetAudience}**.\n\nSome things you can ask me:\n• How do I get started?\n• What is ${profile.topics[0] || 'this project'}?\n• Show me configuration examples`,
+      `Hey! Welcome to **${profile.name}** documentation! 🎯\n\nI've read through the docs and I'm ready to help.\n\nSome things you can ask me:\n• How do I get started?\n• What is ${profile.topics[0] || profile.name}?\n• Show me configuration examples`,
     ];
     
     return greetings[Math.floor(Math.random() * greetings.length)];
   }
+
   
   /**
    * Generate smart suggested questions based on site content
