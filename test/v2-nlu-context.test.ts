@@ -21,13 +21,13 @@ describe('DepthIndex 1.1.0 Site Context & NLU Intent Classification', () => {
     const engine = new SiteContextEngine();
     const profile = engine.detectSiteProfile();
     
-    expect(profile.name).toBe('VitePress Plugin DepthIndex');
+    expect(profile.name).toBe('Vite Press Plugin Depth Index');
     expect(profile.description).toBe('Amazing offline AI search');
     expect(profile.type).toBe('library'); // should match install patterns
 
     const greeting = engine.generateGreeting();
     expect(
-      greeting.includes('VitePress Plugin DepthIndex')
+      greeting.includes('Vite Press Plugin Depth Index')
     ).toBe(true);
 
     vi.unstubAllGlobals();
