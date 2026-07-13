@@ -1,4 +1,4 @@
-<img width="1968" height="799" alt="depthindex-wordmark" src="https://github.com/user-attachments/assets/2f24eb08-a18f-49c6-a2e8-85dc1115c39c" />
+<img width="1968" height="799" alt="depthindex-wordmark" src="https://github.com/EldrexDelosReyesBula/vitepress-depthindex/blob/main/assets%2Fdepthindex-wordmark.png" />
 
 # VitePress DepthIndex
 
