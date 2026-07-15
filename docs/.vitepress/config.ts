@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress';
-import DepthIndex from '../../dist/index.js';
+import DepthIndex from 'vitepress-plugin-depthindex';
 
 export default defineConfig({
   title: 'VitePress DepthIndex',
@@ -9,22 +9,8 @@ export default defineConfig({
 
   vite: {
     plugins: [
-      DepthIndex({
-        searchMode: 'on-device',
-        llmText: {
-          enabled: true,
-          formats: ['txt', 'jsonl', 'markdown'],
-          includeMetadata: true
-        },
-        seo: {
-          siteName: 'VitePress DepthIndex',
-          siteDescription: 'On-device intelligence layer for VitePress documentation',
-          author: 'Eldrex Delos Reyes Bula',
-          twitterHandle: '@eldrex_dev',
-          aiCrawlerPolicy: 'allow',
-          generateAISitemap: true
-        }
-      })
+      // Use all defaults from the npm package — no overrides needed for docs
+      DepthIndex()
     ]
   },
 

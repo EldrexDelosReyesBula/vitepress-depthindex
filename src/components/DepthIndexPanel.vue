@@ -8,10 +8,8 @@
       <!-- Header -->
       <div class="panel-header">
         <div class="header-left">
-          <!-- Spark logo icon -->
-          <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
-          </svg>
+          <!-- Robot icon -->
+          <i class="fa-solid fa-robot logo-icon" aria-hidden="true"></i>
           <div class="header-info">
             <span class="header-title">{{ panelTitle }}</span>
             <span class="badge" :class="searchMode">{{ searchModeLabel }}</span>
@@ -19,15 +17,25 @@
         </div>
         <div class="header-actions">
           <!-- New chat -->
-          <button @click="newSession" :title="t('panel.newChat')" class="hbtn" v-html="ICONS.newChat"></button>
+          <button @click="newSession" :title="t('panel.newChat')" class="hbtn">
+            <i class="fa-solid fa-plus"></i>
+          </button>
           <!-- History -->
-          <button @click="toggleHistory" :title="t('panel.history')" class="hbtn" :class="{ active: showHistory }" v-html="ICONS.history"></button>
+          <button @click="toggleHistory" :title="t('panel.history')" class="hbtn" :class="{ active: showHistory }">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </button>
           <!-- Cloud settings -->
-          <button @click="openCloudConfig" :title="t('panel.settings')" class="hbtn" v-html="ICONS.settings"></button>
+          <button v-if="showSettingsButton" @click="openCloudConfig" :title="t('panel.settings')" class="hbtn">
+            <i class="fa-solid fa-gear"></i>
+          </button>
           <!-- Expand -->
-          <button @click="toggleSize" :title="t('panel.expand')" class="hbtn" v-html="panelSize === 'fullscreen' || panelSize === 'large' ? ICONS.collapse : ICONS.expand"></button>
+          <button @click="toggleSize" :title="t('panel.expand')" class="hbtn">
+            <i :class="panelSize === 'fullscreen' || panelSize === 'large' ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
+          </button>
           <!-- Close -->
-          <button @click="emit('close')" :title="t('panel.close')" class="hbtn hbtn-close" v-html="ICONS.close"></button>
+          <button @click="emit('close')" :title="t('panel.close')" class="hbtn hbtn-close">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
       </div>
 
@@ -69,7 +77,7 @@
       <div class="messages-container" ref="messagesContainerRef" @click="handleLinkClick">
         <!-- Page Context Banner -->
         <div v-if="pageContext" class="page-context-banner">
-          <svg class="ctx-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <i class="fa-solid fa-file-lines ctx-icon" aria-hidden="true"></i>
           <span class="context-text">
             {{ t('panel.viewing') }}: 
             <a :href="resolveSourceUrl(pageContext.url)" class="context-link">
@@ -85,9 +93,7 @@
         <!-- Empty state -->
         <div v-if="messages.length === 0" class="chat-intro">
           <div class="intro-logo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
-            </svg>
+            <i class="fa-solid fa-robot" style="font-size: 28px;"></i>
           </div>
           <h2>{{ t('panel.subtitle') }}</h2>
           <div class="di-intro-greeting" v-html="siteGreetingHtml"></div>
@@ -156,23 +162,37 @@
             <!-- Message Actions -->
             <div v-if="msg.role === 'assistant' && !msg.loading" class="message-actions">
               <!-- Thumbs up -->
-              <button @click="giveFeedback(msg.id, 'up')" :class="['act-btn', { active: msg.feedback === 'up' }]" :title="t('feedback.helpful')" v-html="ICONS.thumbsUp"></button>
+              <button @click="giveFeedback(msg.id, 'up')" :class="['act-btn', { active: msg.feedback === 'up' }]" :title="t('feedback.helpful')">
+                <i class="fa-regular fa-thumbs-up"></i>
+              </button>
               <!-- Thumbs down -->
-              <button @click="giveFeedback(msg.id, 'down')" :class="['act-btn', { active: msg.feedback === 'down' }]" :title="t('feedback.notHelpful')" v-html="ICONS.thumbsDown"></button>
+              <button @click="giveFeedback(msg.id, 'down')" :class="['act-btn', { active: msg.feedback === 'down' }]" :title="t('feedback.notHelpful')">
+                <i class="fa-regular fa-thumbs-down"></i>
+              </button>
               <!-- Copy -->
-              <button @click="copyMessage(msg.content)" class="act-btn" :title="t('feedback.copy')" v-html="ICONS.copy"></button>
+              <button @click="copyMessage(msg.content)" class="act-btn" :title="t('feedback.copy')">
+                <i class="fa-regular fa-copy"></i>
+              </button>
               <!-- Delete -->
-              <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')" v-html="ICONS.delete"></button>
+              <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
             </div>
 
             <!-- User Edit Actions -->
             <div v-if="msg.role === 'user' && editingMessageId !== msg.id && !loading" class="message-actions user-actions">
               <!-- Edit -->
-              <button @click="startEditing(msg)" class="act-btn" :title="t('action.edit')" v-html="ICONS.edit"></button>
+              <button @click="startEditing(msg)" class="act-btn" :title="t('action.edit')">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
               <!-- Resend -->
-              <button @click="resendMessage(msg)" class="act-btn" :title="t('action.resend')" v-html="ICONS.refresh"></button>
+              <button @click="resendMessage(msg)" class="act-btn" :title="t('action.resend')">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
               <!-- Delete -->
-              <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')" v-html="ICONS.delete"></button>
+              <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -219,12 +239,14 @@
             aria-label="Ask anything about the documentation"
             @keydown.enter.exact.prevent="submitQuery"
           ></textarea>
-          <button class="send-btn" :disabled="!query.trim() || loading" @click="submitQuery" :title="t('panel.send')" v-html="ICONS.send"></button>
+          <button class="send-btn" :disabled="!query.trim() || loading" @click="submitQuery" :title="t('panel.send')">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
         </div>
         <div class="panel-footer">
           <div class="footer-left">
             <button @click="openCloudConfig" class="cloud-status-btn">
-              <span v-html="searchMode === 'on-device' ? ICONS.device : ICONS.cloud"></span>
+              <i :class="searchMode === 'on-device' ? 'fa-solid fa-laptop' : 'fa-solid fa-cloud'"></i>
               <span class="mode-badge">{{ searchMode === 'on-device' ? t('answer.source.local') : t('answer.source.cloud') }}</span>
             </button>
           </div>
@@ -256,7 +278,9 @@ import { queryCloudAPI, CloudAdapter } from '../client/cloud-adapter.js';
 import { AnswerSynthesizer } from '../client/answer-synthesizer.js';
 import { ICONS } from '../client/icons.js';
 import { SiteContextEngine } from '../client/site-context.js';
+import { SiteIntelligence } from '../client/site-intelligence.js';
 import { IntentEngine } from '../client/intent-engine.js';
+import { SuggestionEngine } from '../client/suggestion-engine.js';
 import { PluginRegistry, PluginContext } from '../sdk/index.js';
 import { I18nAPI } from '../extensions/i18n/index.js';
 
@@ -316,7 +340,9 @@ const piiDetector = new PIIDetector();
 const cloudAdapter = new CloudAdapter();
 const errorHandler = new ErrorHandler();
 const siteContextEngine = new SiteContextEngine();
+const siteIntelligence = new SiteIntelligence();
 const intentEngine = new IntentEngine();
+const suggestionEngine = new SuggestionEngine();
 
 // SDK registry & i18n initialization
 const registry = (typeof window !== 'undefined' && (window as any).depthIndexRegistry) || new PluginRegistry();
@@ -354,20 +380,46 @@ const searchModeLabel = computed(() => {
   return 'Cloud';
 });
 
+const showSettingsButton = computed(() => {
+  const uiShow = props.options?.ui?.showSettingsButton ?? true;
+  const featAllow = props.options?.features?.allowUserCloudConfig ?? true;
+  return uiShow && featAllow;
+});
+
 const siteGreetingHtml = computed(() => {
+  // Use compact one-liner greeting from siteContextEngine
   const raw = siteContextEngine.generateGreeting();
   return raw
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/• (.*?)(?=\n|$)/g, '<li>$1</li>')
     .replace(/\n/g, '<br>');
 });
 
 const suggestions = computed(() => {
   if (typeof window === 'undefined') return [];
-  const profileSuggestions = siteContextEngine.generateSuggestedQuestions(5);
-  const pageSuggestions = pageContext.value ? siteContextEngine.generatePageQuestions() : [];
-  const merged = [...pageSuggestions, ...profileSuggestions];
-  return [...new Set(merged)].slice(0, 5);
+
+  const profile = siteIntelligence.analyze();
+
+  // Build SuggestionContext from reactive state
+  const context = {
+    siteProfile: profile,
+    currentPage: {
+      ...profile.currentPage,
+      contentLength: document.querySelector('.VPContent, main')?.textContent?.length ?? 0,
+      hasCodeBlocks: document.querySelectorAll('.VPContent pre, main pre').length > 0,
+      hasConfig: /config|option|setting/i.test(document.title + (profile.currentPage.title || '')),
+      url: window.location.pathname,
+    },
+    conversationHistory: messages.value as any[],
+  };
+
+  const engineSuggestions = suggestionEngine.generate(context, 4);
+
+  // Fallback: use SiteIntelligence suggestions if SuggestionEngine returns nothing
+  if (engineSuggestions.length === 0) {
+    return siteIntelligence.suggestQuestions().slice(0, 4);
+  }
+
+  return engineSuggestions;
 });
 
 // Watch open state to focus input & scroll
@@ -466,7 +518,12 @@ watch(messages, () => {
 function updatePageContext() {
   const ctx = pageContextProvider.getPageContext();
   if (ctx) {
+    const prevTitle = pageContext.value?.title;
     pageContext.value = ctx;
+    // Invalidate suggestion cache on page navigation
+    if (prevTitle && prevTitle !== ctx.title) {
+      suggestionEngine.invalidate();
+    }
   }
 }
 

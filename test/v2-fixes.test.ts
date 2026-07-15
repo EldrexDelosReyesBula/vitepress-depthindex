@@ -17,7 +17,8 @@ describe('DepthIndex 1.0.1 Hardening Fixes', () => {
       }
     });
 
-    const engine = new PersonalizationEngine();
+    // Enable personalization so recordQuery and generateSuggestions work
+    const engine = new PersonalizationEngine(true);
     
     // Stop-word check
     const terms1 = engine.extractKeyTerms('how do I configure the plugin');
@@ -36,7 +37,8 @@ describe('DepthIndex 1.0.1 Hardening Fixes', () => {
 
     // Suggestion ends clean
     engine.recordQuery('how do I configure the database');
-    const suggestions = engine.generateSuggestions();
+    const defaults = ['How do I get started?', 'What are the features?'];
+    const suggestions = engine.generateSuggestions(defaults);
     expect(suggestions.length).toBeGreaterThan(0);
     suggestions.forEach(s => {
       const words = s.split(' ');
@@ -46,6 +48,7 @@ describe('DepthIndex 1.0.1 Hardening Fixes', () => {
 
     vi.unstubAllGlobals();
   });
+
 
   it('SecurityManager: ReDoS & DOMParser sanitization', () => {
     const security = new SecurityManager();

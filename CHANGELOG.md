@@ -4,6 +4,41 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.1.5] - 2026-07-14
+
+### Added
+- **SuggestionEngine** (`src/client/suggestion-engine.ts`) — 5-tier verified sidebar-driven suggestion generator. Every suggestion is cross-checked against live VitePress DOM sidebar content before display. Suggestions are never fabricated from topics that don't exist in the docs. Cache is automatically invalidated on page navigation.
+- **SearchModeManager** (`src/client/search-modes.ts`) — unified local / hybrid / cloud search orchestrator. Hybrid mode runs local search first (always fast and offline-safe), then silently attempts cloud enhancement; if cloud fails or the result isn't better, local answer is returned with no visible error. Persists chosen mode to `localStorage`. Re-checks cloud availability after API key save.
+- **NLU layer merged into IntentEngine** — `IntentEngine.understand()` returns a full `NLUResult`: `QueryType` (definition, how_to, example, troubleshoot, comparison, yes_no, summary, etc.), `HighLevelIntent` (learn, implement, configure, fix, reference, chat), `SearchStrategy` (local_preferred, cloud_preferred, hybrid, auto), sub-question splitting for compound queries, and entity extraction.
+- **`ConversationHandler.understand()`** — pass-through to `IntentEngine.understand()` for panel-level NLU access.
+- **`ConversationHandler.createSearchModeManager()`** — factory that wires a `SearchModeManager` with injected local/cloud/synthesizer dependencies, reading `getPersistedMode()` for the default.
+
+### Changed
+- **Personalization OFF by default** — `PersonalizationEngine` constructor default changed from `enabled: true` to `enabled: false`. Existing users who explicitly enabled/disabled it retain their stored preference. Plugin `DEFAULT_OPTIONS.personalization.enabled` also changed to `false`. Recommended for hybrid/cloud deployments only.
+- **`PersonalizationEngine`** now accepts `maxHistory` constructor param (default 20) and uses it in `recordQuery()` instead of the previous hardcoded limit of 15.
+- **`DepthIndexPanel.vue` suggestions** now driven by `SuggestionEngine` instead of `SiteContextEngine`. Falls back to `SiteIntelligence.suggestQuestions()` when no sidebar DOM is available (e.g. SSR). Suggestion cache is invalidated on page navigation.
+- **`PageContext`** extended with `contentLength?`, `hasCodeBlocks?`, `hasConfig?`, and `url?` for page-aware suggestion tier selection.
+- **`DepthIndexOptions.personalization`** extended with `maxHistory?` option.
+
+### Exported Types (new)
+- `NLUResult`, `QueryType`, `HighLevelIntent`, `SearchStrategy` from `intent-engine.ts`
+- `SearchMode`, `SearchResponse` from `search-modes.ts`
+- All re-exported from `src/types/index.ts` for single-import convenience.
+
+---
+
+## [1.1.5] - 2026-07-15
+
+### Fixed
+- **Docs use npm package instead of local source**: `docs/.vitepress/config.ts` now imports from `vitepress-plugin-depthindex` (npm) with all defaults, and `theme/index.ts` no longer manually injects `FloatingButton` — the Vite plugin handles all injection automatically via its virtual module pipeline. This removes double-injection and ensures the docs experience exactly what end users get.
+- **ConversationHandler greeting response**: `handleConversational('greeting')` previously delegated to `SiteIntelligence.generateGreeting()` which returns short context-only text like `"Ask me anything about Documentation."` — this broke the test expecting "Hello/Hi there/Hey". Now uses the pre-built `greetingResponses` array which contains proper friendly greetings consistently.
+- **PersonalizationEngine suggestions test**: The test now correctly enables the personalization engine (`enabled=true`) before calling `recordQuery`, reflecting actual production usage (suggestions only work when the user has opted in).
+- **TypeScript error in `markdown-renderer.ts`**: Parameter `h` in `headers.forEach` was implicitly typed as `any`. Now explicitly typed as `string`.
+
+### Changed  
+- Docs configuration simplified to `DepthIndex()` with no options — all plugin defaults apply, making the docs site a live demonstration of zero-config behavior.
+- `ConversationHandler.handleConversational` default case now returns the first greeting response instead of a hardcoded fallback string.
+
 ## [1.1.4] - 2026-07-13
 
 ### Fixed

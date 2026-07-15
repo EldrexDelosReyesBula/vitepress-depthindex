@@ -22,10 +22,22 @@ const DEFAULT_OPTIONS: DepthIndexOptions = {
     showFloatingButton: true,
     enableFullscreen: true,
     enableModal: true,
+    showSettingsButton: true,
+    defaultSize: 'normal',
+    triggerIcon: 'fa-solid fa-comment-dots',
+    title: '',
+    customClass: '',
+  },
+  features: {
+    allowUserCloudConfig: true,
+    showAttribution: true,
+    allowEdit: true,
+    allowFeedback: true,
   },
   personalization: {
-    enabled: true,
+    enabled: false,  // OFF by default — opt-in, recommended for hybrid/cloud only
     storage: 'localStorage',
+    maxHistory: 20,
   },
   offline: {
     enabled: true,
@@ -54,9 +66,14 @@ export default function DepthIndexPlugin(
       ...DEFAULT_OPTIONS.ui,
       ...options.ui,
     },
+    features: {
+      ...DEFAULT_OPTIONS.features,
+      ...options.features,
+    },
     personalization: {
       ...DEFAULT_OPTIONS.personalization,
       ...options.personalization,
+      maxHistory: options.personalization?.maxHistory ?? DEFAULT_OPTIONS.personalization.maxHistory,
     },
     offline: {
       ...DEFAULT_OPTIONS.offline,
@@ -68,6 +85,17 @@ export default function DepthIndexPlugin(
     },
     extensions: options.extensions || [],
   };
+
+  const apiKeyEnv = (typeof process !== 'undefined' && process.env?.VITE_DEPTHINDEX_CLOUD_API_KEY) || 
+                    (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_DEPTHINDEX_CLOUD_API_KEY);
+  if (apiKeyEnv) {
+    if (configOptions.features) {
+      configOptions.features.allowUserCloudConfig = false;
+    }
+    if (configOptions.ui) {
+      configOptions.ui.showSettingsButton = false;
+    }
+  }
 
   // Split extensions into static (serializeable, like language packs) and client-only (which run in browser)
   const clientExtensions: any[] = [];
@@ -292,6 +320,16 @@ export default function DepthIndexPlugin(
           processed = processed.replace('</head>', `${katexLink}\n</head>`);
         } else {
           processed = `<head>${katexLink}</head>` + processed;
+        }
+      }
+      
+      // Inject FontAwesome 6 CSS
+      if (!processed.includes('font-awesome/6.5.1/css/all.min.css')) {
+        const faLink = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">`;
+        if (processed.includes('</head>')) {
+          processed = processed.replace('</head>', `${faLink}\n</head>`);
+        } else {
+          processed = `<head>${faLink}</head>` + processed;
         }
       }
       
@@ -526,6 +564,16 @@ function injectScriptIntoHtmlFiles(dir: string, scriptTag: string): void {
           content = content.replace('</head>', `${katexLink}\n</head>`);
         } else {
           content = katexLink + content;
+        }
+        modified = true;
+      }
+      
+      if (!content.includes('font-awesome/6.5.1/css/all.min.css')) {
+        const faLink = `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">`;
+        if (content.includes('</head>')) {
+          content = content.replace('</head>', `${faLink}\n</head>`);
+        } else {
+          content = faLink + content;
         }
         modified = true;
       }

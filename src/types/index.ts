@@ -87,6 +87,38 @@ export interface MetaTagSet {
   structuredData: any;
 }
 
+export interface PageContext {
+  title: string;
+  section: string;
+  relatedPages: string[];
+  /** Approximate character count of page content */
+  contentLength?: number;
+  /** Whether the page contains code blocks */
+  hasCodeBlocks?: boolean;
+  /** Whether the page contains configuration examples */
+  hasConfig?: boolean;
+  /** Canonical URL of the current page */
+  url?: string;
+}
+
+export interface DocGroup {
+  header: string;
+  items: string[];
+}
+
+export interface DocStructure {
+  groups: DocGroup[];
+}
+
+export interface SiteProfile {
+  name: string;
+  description: string;
+  type: 'library' | 'api' | 'tool' | 'other';
+  structure: DocStructure;
+  topics: string[];
+  currentPage: PageContext;
+}
+
 export interface DepthIndexOptions {
   searchMode: 'on-device' | 'cloud' | 'hybrid';
   cloudAPI?: {
@@ -108,10 +140,23 @@ export interface DepthIndexOptions {
     showFloatingButton: boolean;
     enableFullscreen: boolean;
     enableModal: boolean;
+    showSettingsButton?: boolean;
+    defaultSize?: 'compact' | 'normal' | 'fullscreen';
+    customClass?: string;
+    triggerIcon?: string;
+    title?: string;
+  };
+  features?: {
+    allowUserCloudConfig?: boolean;
+    showAttribution?: boolean;
+    allowEdit?: boolean;
+    allowFeedback?: boolean;
   };
   personalization: {
     enabled: boolean;
     storage: 'localStorage' | 'indexedDB';
+    /** Maximum number of query history entries to keep. @default 20 */
+    maxHistory?: number;
   };
   offline: {
     enabled: boolean;
@@ -140,3 +185,7 @@ export interface SearchResult {
   cosineScore: number;
   bm25Score: number;
 }
+
+// ─── Re-exports from client modules ──────────────────────────────────────────
+export type { NLUResult, QueryType, HighLevelIntent, SearchStrategy } from '../client/intent-engine.js';
+export type { SearchMode, SearchResponse } from '../client/search-modes.js';

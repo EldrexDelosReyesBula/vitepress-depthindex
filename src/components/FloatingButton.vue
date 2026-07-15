@@ -9,8 +9,8 @@
       aria-label="Toggle AI Documentation Assistant"
       title="Ask AI Assistant (Ctrl+K)"
     >
-      <span class="trigger-icon">✦</span>
-      <span class="trigger-text">Ask AI</span>
+      <i :class="triggerIconClass" class="trigger-icon"></i>
+      <span class="trigger-pulse"></span>
     </button>
 
     <!-- Search Modal overlay -->
@@ -59,6 +59,7 @@ const personalization = new PersonalizationEngine(props.options.personalization?
 
 const themeClass = computed(() => `theme-${props.options.ui.theme || 'auto'}`);
 const positionClass = computed(() => `pos-${props.options.ui.position || 'bottom-right'}`);
+const triggerIconClass = computed(() => props.options.ui?.triggerIcon || 'fa-solid fa-comment-dots');
 
 function toggleChat() {
   isChatOpen.value = !isChatOpen.value;
@@ -130,32 +131,51 @@ onUnmounted(() => {
   z-index: 100;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  justify-content: center;
+  gap: 0;
+  width: 52px;
+  height: 52px;
   border-radius: 9999px;
   background: linear-gradient(135deg, var(--vp-c-brand, #3eaf7c), #2d825c);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 14px rgba(62, 175, 124, 0.4), 0 2px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 18px rgba(62, 175, 124, 0.45), 0 2px 6px rgba(0, 0, 0, 0.12);
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 20px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: fixed;
 }
 
 .depthindex-trigger-btn:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 6px 20px rgba(62, 175, 124, 0.5), 0 3px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 8px 24px rgba(62, 175, 124, 0.55), 0 3px 10px rgba(0, 0, 0, 0.16);
   background: linear-gradient(135deg, #4ac38e, var(--vp-c-brand, #3eaf7c));
 }
 
 .depthindex-trigger-btn:active {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.97);
 }
 
 .trigger-icon {
-  font-size: 15px;
-  animation: float-spark 2.5s infinite ease-in-out;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.trigger-pulse {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #4ade80;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  top: 6px;
+  right: 6px;
+  animation: di-pulse 2s infinite;
+}
+
+@keyframes di-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
 }
 
 /* Position mapping */
@@ -167,10 +187,5 @@ onUnmounted(() => {
 .pos-bottom-left {
   bottom: 24px;
   left: 24px;
-}
-
-@keyframes float-spark {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-1px) scale(1.15); opacity: 0.9; }
 }
 </style>

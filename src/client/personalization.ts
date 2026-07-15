@@ -8,7 +8,8 @@ export interface SearchHistoryItem {
 }
 
 export class PersonalizationEngine {
-  private enabled = true;
+  private enabled = false;
+  private maxHistory = 20;
   private storageKeyHistory = 'depthindex_history';
   private storageKeyAffinity = 'depthindex_affinity';
   private storageKeyOpt = 'depthindex_opt_in';
@@ -48,13 +49,24 @@ export class PersonalizationEngine {
   // Minimum meaningful word length
   private minWordLength = 3;
 
-  constructor(enabled: boolean = true) {
+  constructor(enabled: boolean = false, maxHistory: number = 20) {
     this.enabled = enabled;
+    this.maxHistory = maxHistory;
     if (typeof window !== 'undefined') {
       const opt = window.localStorage.getItem(this.storageKeyOpt);
       if (opt === 'false') {
         this.enabled = false;
+      } else if (opt === 'true') {
+        // Respect explicit user choice even if default changed
+        this.enabled = true;
       }
+    }
+    if (this.enabled) {
+      console.log(
+        '[DepthIndex] Personalization enabled. ' +
+        'Note: Best results with hybrid/cloud mode. ' +
+        'Local-only may have limited suggestion accuracy.'
+      );
     }
   }
 
@@ -154,7 +166,7 @@ export class PersonalizationEngine {
       query,
       timestamp: Date.now()
     };
-    const updatedHistory = [newItem, ...history.filter(h => h.query !== query)].slice(0, 15);
+    const updatedHistory = [newItem, ...history.filter(h => h.query !== query)].slice(0, this.maxHistory);
     window.localStorage.setItem(this.storageKeyHistory, JSON.stringify(updatedHistory));
 
     // 2. Update Topic Affinity

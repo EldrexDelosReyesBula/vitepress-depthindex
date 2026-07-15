@@ -1,10 +1,17 @@
-import { SiteContextEngine } from './site-context.js';
+import { SiteIntelligence } from './site-intelligence.js';
+import { IntentEngine, NLUResult } from './intent-engine.js';
+import { SearchModeManager, SearchMode, getPersistedMode } from './search-modes.js';
+
+// Re-export types so consumers only need one import
+export type { NLUResult, SearchMode };
 
 export class ConversationHandler {
   private intentPatterns: Map<string, RegExp[]>;
   private greetingResponses: string[];
+  private intentEngine: IntentEngine;
 
   constructor() {
+    this.intentEngine = new IntentEngine();
     this.intentPatterns = new Map([
       ['greeting', [
         /^(hi|hello|hey|greetings|howdy|yo|sup|good (morning|afternoon|evening))/i,
@@ -74,7 +81,7 @@ export class ConversationHandler {
   async handleConversational(intent: string, context?: any): Promise<string> {
     switch (intent) {
       case 'greeting':
-        return new SiteContextEngine().generateGreeting();
+        return this.greetingResponses[Math.floor(Math.random() * this.greetingResponses.length)];
 
       case 'identity':
         return `I'm **DepthIndex Assistant**, an on-device AI built into this documentation. I run entirely in your browser — no data leaves your device unless configured for cloud AI. You can verify this in the settings.`;
@@ -89,7 +96,7 @@ export class ConversationHandler {
         return "Goodbye! 👋 Feel free to come back anytime you have questions. I'll be here!";
 
       default:
-        return "I'm not sure how to respond to that, but I'd be happy to help you search the documentation! What are you looking for?";
+        return this.greetingResponses[0];
     }
   }
 
@@ -119,5 +126,35 @@ export class ConversationHandler {
     return query.toLowerCase()
       .split(/\s+/)
       .filter(word => !stopWords.has(word) && word.length > 2);
+  }
+
+  /**
+   * Full NLU understanding — richer than detectIntent().
+   * Returns query type, high-level intent, entities, sub-questions, and recommended search strategy.
+   */
+  understand(
+    query: string,
+    previousMessages?: Array<{ role: string; content: string }>
+  ): NLUResult {
+    return this.intentEngine.understand(query, previousMessages);
+  }
+
+  /**
+   * Create a SearchModeManager wired to the search engines.
+   * Pass the local engine, cloud adapter, and synthesizer instances.
+   */
+  createSearchModeManager(options: {
+    defaultMode?: SearchMode;
+    localEngine: any;
+    cloudAdapter: any;
+    synthesizer: any;
+  }): SearchModeManager {
+    const defaultMode = options.defaultMode ?? (getPersistedMode('local') as SearchMode);
+    return new SearchModeManager({
+      defaultMode,
+      localEngine: options.localEngine,
+      cloudAdapter: options.cloudAdapter,
+      synthesizer: options.synthesizer,
+    });
   }
 }
