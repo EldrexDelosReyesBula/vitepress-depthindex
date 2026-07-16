@@ -9,8 +9,10 @@
       aria-label="Toggle AI Documentation Assistant"
       title="Ask AI Assistant (Ctrl+K)"
     >
-      <i :class="triggerIconClass" class="trigger-icon"></i>
-      <span class="trigger-pulse"></span>
+      <svg class="trigger-sparkle" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
+      </svg>
+      <span class="trigger-text">Ask AI</span>
     </button>
 
     <!-- Search Modal overlay -->
@@ -109,9 +111,13 @@ onMounted(async () => {
   // 3. Lazily load the documentation index
   try {
     const indexData = await fetchAndDecompressIndex();
-    engine.setIndex(indexData);
+    if (indexData && Array.isArray((indexData as any).vocabulary)) {
+      engine.setIndex(indexData);
+    }
+    // If indexData is empty/null, setIndex's own guard handles it silently
   } catch (err) {
-    console.error('[depthindex] Failed to load search index:', err);
+    // Non-critical: search degrades gracefully without an index
+    console.info('[depthindex] Search index unavailable (normal in dev mode without a build).');
   }
 });
 
@@ -131,51 +137,44 @@ onUnmounted(() => {
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  width: 52px;
-  height: 52px;
+  gap: 8px;
+  padding: 10px 16px;
+  height: 42px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, var(--vp-c-brand, #3eaf7c), #2d825c);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 18px rgba(62, 175, 124, 0.45), 0 2px 6px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(135deg, #8fa8ea 0%, #4fa682 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35), 0 2px 6px rgba(0, 0, 0, 0.12);
   color: #ffffff;
-  font-size: 20px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: fixed;
 }
 
 .depthindex-trigger-btn:hover {
-  transform: translateY(-3px) scale(1.06);
-  box-shadow: 0 8px 24px rgba(62, 175, 124, 0.55), 0 3px 10px rgba(0, 0, 0, 0.16);
-  background: linear-gradient(135deg, #4ac38e, var(--vp-c-brand, #3eaf7c));
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45), 0 3px 10px rgba(0, 0, 0, 0.16);
+  background: linear-gradient(135deg, #9bb2f3 0%, #57b38d 100%);
 }
 
 .depthindex-trigger-btn:active {
-  transform: translateY(1px) scale(0.97);
+  transform: translateY(1px) scale(0.98);
 }
 
-.trigger-icon {
-  font-size: 18px;
+.trigger-sparkle {
+  width: 16px;
+  height: 16px;
+  animation: float-spark 2.5s infinite ease-in-out;
+}
+
+.trigger-text {
+  font-family: inherit;
   line-height: 1;
 }
 
-.trigger-pulse {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #4ade80;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  top: 6px;
-  right: 6px;
-  animation: di-pulse 2s infinite;
-}
-
-@keyframes di-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.2); }
+@keyframes float-spark {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1px) scale(1.15); opacity: 0.9; }
 }
 
 /* Position mapping */

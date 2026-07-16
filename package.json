@@ -16,10 +16,12 @@
       "import": "./dist/sdk/index.js",
       "require": "./dist/sdk/index.cjs"
     },
+    "./components/FloatingButton.vue": "./src/components/FloatingButton.vue",
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
+    "src/components",
     "README.md",
     "LICENSE",
     "CHANGELOG.md",

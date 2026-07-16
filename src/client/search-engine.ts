@@ -15,6 +15,11 @@ export class DepthIndexEngine {
   }
 
   public setIndex(index: SerializedIndex): void {
+    // Guard against undefined, null, or malformed index data
+    if (!index || !Array.isArray(index.vocabulary) || !Array.isArray(index.chunks)) {
+      console.warn('[depthindex] setIndex received invalid index data — search will be unavailable until a valid index is loaded.');
+      return;
+    }
     this.index = index;
     
     // Map vocabulary strings to indices

@@ -3,6 +3,12 @@ export function registerServiceWorker(enabled: boolean = true): void {
     return;
   }
 
+  // Skip in Vite dev mode — SW script isn't served; the error is expected and not actionable
+  const isDev = (import.meta as any).env?.DEV === true || (import.meta as any).env?.MODE === 'development';
+  if (isDev) {
+    return;
+  }
+
   if (!enabled) {
     // Unregister existing service worker if disabled
     navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -25,7 +31,13 @@ export function registerServiceWorker(enabled: boolean = true): void {
         console.log('[depthindex] Service worker registered successfully:', registration.scope);
       })
       .catch(error => {
-        console.error('[depthindex] Service worker registration failed:', error);
+        // MIME type / SecurityError = SW script not yet generated (normal before first build)
+        const isMimeError = error?.message?.includes('MIME') || error?.name === 'SecurityError';
+        if (isMimeError) {
+          console.info('[depthindex] Service worker not available (build required to enable offline mode).');
+        } else {
+          console.warn('[depthindex] Service worker registration failed:', error);
+        }
       });
   });
 }

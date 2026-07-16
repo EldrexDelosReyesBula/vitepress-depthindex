@@ -4,8 +4,18 @@ import { generateLLMText } from './build/llm-txt.js';
 import { serializeAndCompressIndex } from './build/indexer.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { DepthIndexOptions } from './types/index.js';
 import { ComplianceEnforcer } from './sdk/compliance.js';
+
+// Resolve the absolute path to FloatingButton.vue from this plugin's own location.
+// This works whether the plugin is used as a local file or installed from npm.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// In the built ESM dist, __dirname is dist/. FloatingButton.vue is at src/components/ (dev)
+// or needs to be resolved relative to the installed package root.
+const FLOATING_BUTTON_VUE_PATH = path.resolve(__dirname, '..', 'src', 'components', 'FloatingButton.vue');
+const FLOATING_BUTTON_VIRTUAL_ID = '\0vitepress-plugin-depthindex/components/FloatingButton.vue';
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
   searchMode: 'on-device',
@@ -271,6 +281,12 @@ export default function DepthIndexPlugin(
       if (id === '/@depthindex/client.js' || id === virtualModuleId) {
         return resolvedVirtualModuleId;
       }
+      // Intercept the FloatingButton.vue import from the virtual client module.
+      // The package.json exports map doesn't expose this sub-path, so we resolve
+      // it manually to the actual .vue file location.
+      if (id === 'vitepress-plugin-depthindex/components/FloatingButton.vue') {
+        return FLOATING_BUTTON_VIRTUAL_ID;
+      }
     },
 
     load(id: string) {
@@ -297,6 +313,19 @@ export default function DepthIndexPlugin(
             });
           }
         `;
+      }
+      // Serve FloatingButton.vue source from the plugin's own location
+      if (id === FLOATING_BUTTON_VIRTUAL_ID) {
+        try {
+          return fs.readFileSync(FLOATING_BUTTON_VUE_PATH, 'utf-8');
+        } catch {
+          // Fallback: look relative to the installed npm package (dist/../src/components/)
+          const fallback = path.resolve(__dirname, 'components', 'FloatingButton.vue');
+          if (fs.existsSync(fallback)) {
+            return fs.readFileSync(fallback, 'utf-8');
+          }
+          console.warn('[depthindex] FloatingButton.vue not found at:', FLOATING_BUTTON_VUE_PATH);
+        }
       }
     },
 

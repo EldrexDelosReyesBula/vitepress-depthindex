@@ -2,30 +2,45 @@
   "hash": "b43f71c9",
   "configHash": "a1f3bdb4",
   "lockfileHash": "ebe97e56",
-  "browserHash": "aae5fbda",
+  "browserHash": "c3990828",
   "optimized": {
     "vue": {
       "src": "../../../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
       "file": "vue.js",
-      "fileHash": "5230b7f7",
+      "fileHash": "bff9ba97",
       "needsInterop": false
     },
     "vitepress > @vue/devtools-api": {
       "src": "../../../../node_modules/@vue/devtools-api/dist/index.js",
       "file": "vitepress___@vue_devtools-api.js",
-      "fileHash": "c102a7af",
+      "fileHash": "0af72b40",
       "needsInterop": false
     },
     "vitepress > @vueuse/core": {
       "src": "../../../../node_modules/@vueuse/core/index.mjs",
       "file": "vitepress___@vueuse_core.js",
-      "fileHash": "68941de7",
+      "fileHash": "7466dc08",
+      "needsInterop": false
+    },
+    "lz-string": {
+      "src": "../../../../node_modules/lz-string/libs/lz-string.js",
+      "file": "lz-string.js",
+      "fileHash": "5466433e",
+      "needsInterop": true
+    },
+    "stemmer": {
+      "src": "../../../../node_modules/stemmer/index.js",
+      "file": "stemmer.js",
+      "fileHash": "3f88d44e",
       "needsInterop": false
     }
   },
   "chunks": {
     "chunk-DU7MIZ7L": {
       "file": "chunk-DU7MIZ7L.js"
+    },
+    "chunk-BUSYA2B4": {
+      "file": "chunk-BUSYA2B4.js"
     }
   }
 }
