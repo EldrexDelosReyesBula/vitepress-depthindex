@@ -351,22 +351,15 @@ export class SiteContextEngine {
     return 'intermediate';
   }
   
-  /**
-   * Generate contextual greeting based on site profile
-   */
   generateGreeting(): string {
     const profile = this.detectSiteProfile();
     
-    const topicsSnippet = profile.topics.length > 0
-      ? profile.topics.slice(0, 3).join(', ')
-      : 'the documentation';
-    
     const greetings = [
-      `Hello! 👋 I'm your AI assistant for **${profile.name}**. I've read through all the documentation and can help you understand ${topicsSnippet}${profile.topics.length > 3 ? ', and more' : ''}. What would you like to learn?`,
+      `Hello! 👋 I'm your AI assistant for **${profile.name}**. I've read through all the documentation and I'm ready to help. Ask me anything about the docs!`,
       
-      `Hi there! I'm here to help with **${profile.name}** — ask me anything about the docs.\n\nI can help you with:\n${profile.topics.slice(0, 4).map(t => `• ${t}`).join('\n')}`,
+      `Hi there! Welcome to the **${profile.name}** documentation! I've read the pages and am ready to assist. Ask me anything about these docs. 🎯`,
       
-      `Hey! Welcome to **${profile.name}** documentation! 🎯\n\nI've read through the docs and I'm ready to help.\n\nSome things you can ask me:\n• How do I get started?\n• What is ${profile.topics[0] || profile.name}?\n• Show me configuration examples`,
+      `Hey! Welcome to the **${profile.name}** documentation! 🎯 I've read through the docs and am ready to help. What would you like to learn today?`,
     ];
     
     return greetings[Math.floor(Math.random() * greetings.length)];

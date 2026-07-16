@@ -19,6 +19,30 @@ const FLOATING_BUTTON_VIRTUAL_ID = '\0vitepress-plugin-depthindex/components/Flo
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
   searchMode: 'on-device',
+  placement: {
+    mode: 'all',
+  },
+  searchBar: {
+    enabled: true,
+    position: 'top',
+    maxAnswerLength: 500,
+    showExpandButton: true,
+    placeholder: 'Ask AI or search docs...',
+    shortcut: '⌘K',
+  },
+  panel: {
+    enabled: true,
+    position: 'right',
+    defaultSize: 'normal',
+    showHistory: true,
+    showSettings: true,
+  },
+  floatingButton: {
+    enabled: true,
+    position: 'bottom-right',
+    icon: 'fa-solid fa-comment-dots',
+    pulse: true,
+  },
   indexConfig: {
     chunkSize: 500,
     overlapSize: 50,
@@ -68,6 +92,36 @@ export default function DepthIndexPlugin(
   const configOptions: DepthIndexOptions = {
     ...DEFAULT_OPTIONS,
     ...options,
+    placement: {
+      mode: options.placement?.mode || (options.ui?.showFloatingButton === false ? 'search-bar' : 'all'),
+      searchBarSelector: options.placement?.searchBarSelector,
+    },
+    searchBar: {
+      enabled: options.searchBar?.enabled ?? (options.ui?.enableModal ?? true),
+      position: options.searchBar?.position || 'top',
+      maxAnswerLength: options.searchBar?.maxAnswerLength || 500,
+      showExpandButton: options.searchBar?.showExpandButton ?? true,
+      placeholder: options.searchBar?.placeholder || 'Ask AI or search docs...',
+      logo: options.searchBar?.logo,
+      shortcut: options.searchBar?.shortcut || '⌘K',
+    },
+    panel: {
+      enabled: options.panel?.enabled ?? true,
+      position: options.panel?.position || (options.ui?.position === 'bottom-left' ? 'left' : 'right'),
+      defaultSize: options.panel?.defaultSize || options.ui?.defaultSize || 'normal',
+      showHistory: options.panel?.showHistory ?? true,
+      logo: options.panel?.logo,
+      title: options.panel?.title || options.ui?.title || '',
+      subtitle: options.panel?.subtitle || '',
+      showSettings: options.panel?.showSettings ?? options.ui?.showSettingsButton ?? true,
+    },
+    floatingButton: {
+      enabled: options.floatingButton?.enabled ?? options.ui?.showFloatingButton ?? true,
+      position: options.floatingButton?.position || options.ui?.position || 'bottom-right',
+      icon: options.floatingButton?.icon || options.ui?.triggerIcon || 'fa-solid fa-comment-dots',
+      pulse: options.floatingButton?.pulse ?? true,
+      label: options.floatingButton?.label,
+    },
     indexConfig: {
       ...DEFAULT_OPTIONS.indexConfig,
       ...options.indexConfig,
@@ -171,6 +225,14 @@ export default function DepthIndexPlugin(
             res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
             res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
             res.end(fs.readFileSync(workerPath, 'utf-8'));
+            return;
+          }
+        }
+        if (req.url === '/depthindex-search-bar.css') {
+          const cssPath = path.resolve(__dirname, './styles/search-bar.css');
+          if (fs.existsSync(cssPath)) {
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            res.end(fs.readFileSync(cssPath, 'utf-8'));
             return;
           }
         }
@@ -341,6 +403,16 @@ export default function DepthIndexPlugin(
           processed = processed + scriptTag;
         }
       }
+
+      // Inject Search Bar CSS
+      if (!processed.includes('/depthindex-search-bar.css')) {
+        const cssLink = `<link rel="stylesheet" href="/depthindex-search-bar.css">`;
+        if (processed.includes('</head>')) {
+          processed = processed.replace('</head>', `${cssLink}\n</head>`);
+        } else {
+          processed = `<head>${cssLink}</head>` + processed;
+        }
+      }
       
       // Inject KaTeX CSS
       if (!processed.includes('katex@0.16.9/dist/katex.min.css')) {
@@ -484,6 +556,20 @@ export default function DepthIndexPlugin(
             console.log('[depthindex] Search worker emitted successfully.');
           } else {
             console.warn('[depthindex] search-worker.js not found at:', workerPath);
+          }
+
+          // Emit search-bar.css as depthindex-search-bar.css
+          const cssPath = path.resolve(__dirname, './styles/search-bar.css');
+          if (fs.existsSync(cssPath)) {
+            const cssSource = fs.readFileSync(cssPath, 'utf-8');
+            this.emitFile({
+              type: 'asset',
+              fileName: 'depthindex-search-bar.css',
+              source: cssSource,
+            });
+            console.log('[depthindex] Search bar stylesheet emitted successfully.');
+          } else {
+            console.warn('[depthindex] search-bar.css not found at:', cssPath);
           }
         }
 

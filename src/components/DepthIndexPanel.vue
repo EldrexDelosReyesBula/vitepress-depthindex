@@ -8,8 +8,10 @@
       <!-- Header -->
       <div class="panel-header">
         <div class="header-left">
-          <!-- Robot icon -->
-          <i class="fa-solid fa-robot logo-icon" aria-hidden="true"></i>
+          <!-- Sparkle Logo icon -->
+          <svg class="logo-icon sparkle-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); flex-shrink: 0;">
+            <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
+          </svg>
           <div class="header-info">
             <span class="header-title">{{ panelTitle }}</span>
             <span class="badge" :class="searchMode">{{ searchModeLabel }}</span>
@@ -93,7 +95,9 @@
         <!-- Empty state -->
         <div v-if="messages.length === 0" class="chat-intro">
           <div class="intro-logo">
-            <i class="fa-solid fa-robot" style="font-size: 28px;"></i>
+            <svg class="sparkle-icon" viewBox="0 0 24 24" fill="currentColor" width="32" height="32" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); opacity: 0.8; margin-bottom: 12px;">
+              <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
+            </svg>
           </div>
           <h2>{{ t('panel.subtitle') }}</h2>
           <div class="di-intro-greeting" v-html="siteGreetingHtml"></div>
@@ -901,12 +905,27 @@ async function generateAssistantResponse(queryToRun: string) {
       }
 
       // Generate Related Topics footer
-      if (synthesizedResponse.relatedTopics.length > 0) {
+      const validRelated = (synthesizedResponse.relatedTopics || []).filter(topic => {
+        if (!topic) return false;
+        if (typeof topic === 'object') {
+          return !!((topic as any).title && (topic as any).title.trim());
+        }
+        return typeof topic === 'string' && topic.trim().length > 0;
+      });
+
+      if (validRelated.length > 0) {
         finalContent += '\n\n### 🔍 Related Topics\n\n';
-        finalContent += synthesizedResponse.relatedTopics
-          .map(topic => `• ${topic}`)
+        finalContent += validRelated
+          .map(topic => {
+            if (typeof topic === 'object') {
+              const tObj = topic as { title: string; url: string };
+              return `• [${tObj.title.trim()}](${tObj.url || '#'})`;
+            }
+            return `• ${topic.trim()}`;
+          })
           .join('\n');
       }
+
 
       // Append badge indicator
       const sourceBadge = synthesizedResponse.source === 'cloud' 
@@ -1028,8 +1047,9 @@ async function summarizePage() {
 async function discussPage() {
   if (loading.value || !pageContext.value) return;
   
-  const topic = prompt('Enter a specific topic to discuss on this page:');
-  if (!topic || !topic.trim()) return;
+  // Directly use the page title as the discussion topic, no user prompt required
+  const topic = pageContext.value.title;
+  if (!topic) return;
 
   loading.value = true;
   const assistantMsgId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + 1);
@@ -1421,6 +1441,19 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 .intro-logo { color: var(--vp-c-brand, #3eaf7c); margin-bottom: 12px; opacity: 0.8; }
 .chat-intro h2 { font-size: 16px; font-weight: 700; color: var(--vp-c-text-1, #3c3c3c); margin: 0 0 6px; }
 .chat-intro p { font-size: 12px; line-height: 1.5; max-width: 240px; margin: 0; }
+.di-intro-greeting {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--vp-c-text-2, #666);
+  max-width: 280px;
+  margin: 8px auto 0;
+  text-align: center;
+}
+.di-intro-greeting strong {
+  color: var(--vp-c-text-1, #3c3c3c);
+  font-weight: 600;
+}
+
 
 /* ─── Messages ────────────────────────────────────────────── */
 .message-wrapper { display: flex; width: 100%; }
@@ -1530,14 +1563,118 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 }
 .message-content :deep(.math-error) { color: #ef4444; font-family: monospace; }
 
+/* Tables */
+.message-content :deep(.md-table-wrapper) {
+  margin: 10px 0; overflow-x: auto; border-radius: 8px;
+  border: 1px solid var(--vp-c-divider, rgba(60,60,60,0.12));
+}
+.message-content :deep(.md-table) {
+  width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;
+}
+.message-content :deep(.md-thead) {
+  background: var(--vp-c-bg-soft, #f6f6f7);
+  border-bottom: 1px solid var(--vp-c-divider, rgba(60,60,60,0.12));
+}
+.message-content :deep(.md-th),
+.message-content :deep(.md-td) {
+  padding: 6px 10px;
+}
+.message-content :deep(.md-tr:not(:last-child)) {
+  border-bottom: 1px solid var(--vp-c-divider, rgba(60,60,60,0.08));
+}
+.message-content :deep(.md-tr:hover) {
+  background: var(--vp-c-bg-soft, rgba(0,0,0,0.02));
+}
+
+/* Media / Images */
+.message-content :deep(.content-image) {
+  margin: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: zoom-in;
+}
+.message-content :deep(.content-image img) {
+  max-width: 100%; max-height: 200px; border-radius: 6px; object-fit: cover;
+  transition: transform 0.2s ease, max-height 0.2s ease;
+  border: 1px solid var(--vp-c-divider, rgba(60,60,60,0.12));
+}
+.message-content :deep(.content-image.expanded) {
+  cursor: zoom-out;
+}
+.message-content :deep(.content-image.expanded img) {
+  max-height: 500px; transform: scale(1.02);
+}
+.message-content :deep(.content-image figcaption) {
+  font-size: 11px; color: var(--vp-c-text-3, #999); text-align: center;
+}
+.message-content :deep(.image-error) {
+  display: flex; align-items: center; gap: 6px; padding: 10px;
+  border: 1px dashed var(--vp-c-divider, #e2e2e3); border-radius: 6px;
+  font-size: 11px; color: var(--vp-c-text-3, #999);
+}
+.message-content :deep(.md-inline-img) {
+  max-width: 100%; height: auto; border-radius: 4px; margin: 2px 0;
+}
+
+/* Videos */
+.message-content :deep(.content-video) {
+  margin: 10px 0; display: flex; flex-direction: column; gap: 6px;
+}
+.message-content :deep(.video-player) {
+  width: 100%; border-radius: 8px; border: 1px solid var(--vp-c-divider, rgba(60,60,60,0.12));
+}
+.message-content :deep(.video-download) {
+  align-self: flex-start; font-size: 11px; color: var(--vp-c-brand, #3eaf7c); text-decoration: none;
+}
+.message-content :deep(.video-download:hover) {
+  text-decoration: underline;
+}
+
+/* YouTube */
+.message-content :deep(.youtube-embed) {
+  margin: 10px 0; position: relative; border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--vp-c-divider, rgba(60,60,60,0.12)); background: #000;
+}
+.message-content :deep(.youtube-embed.youtube-shorts) {
+  max-width: 315px; margin: 10px auto;
+}
+.message-content :deep(.youtube-placeholder) {
+  position: relative; cursor: pointer; aspect-ratio: 16 / 9;
+}
+.message-content :deep(.youtube-shorts .youtube-placeholder) {
+  aspect-ratio: 9 / 16;
+}
+.message-content :deep(.youtube-thumbnail) {
+  width: 100%; height: 100%; object-fit: cover; opacity: 0.8; transition: opacity 0.2s ease;
+}
+.message-content :deep(.youtube-placeholder:hover .youtube-thumbnail) {
+  opacity: 1;
+}
+.message-content :deep(.youtube-play-button) {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; transition: transform 0.2s ease;
+}
+.message-content :deep(.youtube-placeholder:hover .youtube-play-button) {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
 /* Mermaid */
 .message-content :deep(.mermaid-container) {
-  margin: 10px 0; padding: 12px; background: #fff;
+  margin: 10px 0; padding: 12px; background: var(--vp-c-bg, #fff);
   border: 1px solid var(--vp-c-divider, rgba(60,60,60,0.12));
-  border-radius: 8px; display: flex; justify-content: center; overflow-x: auto;
+  border-radius: 8px; display: flex; flex-direction: column; align-items: center; overflow-x: auto;
 }
 .message-content :deep(.mermaid-diagram) { width: 100%; }
+.message-content :deep(.mermaid-diagram svg) { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.message-content :deep(.mermaid-loading-hint) { font-size: 11px; color: var(--vp-c-text-3, #999); margin: 4px 0 0; }
+.message-content :deep(.mermaid-source) { width: 100%; margin-top: 8px; }
+.message-content :deep(.mermaid-source summary) { font-size: 11px; color: var(--vp-c-text-3, #999); cursor: pointer; outline: none; }
+.message-content :deep(.mermaid-source pre) { margin-top: 4px; padding: 6px; background: var(--vp-c-bg-soft, #f6f6f7); border-radius: 4px; font-size: 10.5px; }
 .message-content :deep(.mermaid-error-banner) { color: #ef4444; font-size: 11px; padding: 4px; }
+.message-content :deep(.mermaid-fallback) {
+  border: 1px solid #fecaca; background: #fff5f5; padding: 10px; border-radius: 6px; margin: 10px 0;
+}
+
+/* Syntax Addition */
+.message-content :deep(.tok-num) { color: #b5cea8; }
+.message-content :deep(.tok-comment) { color: #6a9955; font-style: italic; }
+
 
 /* ─── Sources ─────────────────────────────────────────────── */
 .sources-list {

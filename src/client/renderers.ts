@@ -32,9 +32,11 @@ export class ContentRenderer {
   private initMermaid(): void {
     if (this.mermaidObj) {
       try {
+        const isDark = typeof document !== 'undefined' &&
+          document.documentElement.classList.contains('dark');
         this.mermaidObj.initialize({
           startOnLoad: false,
-          theme: 'default',
+          theme: isDark ? 'dark' : 'default',
           securityLevel: 'loose',
           suppressErrorRendering: true,
         });
@@ -117,7 +119,9 @@ export class ContentRenderer {
   }
 
   /**
-   * Main async render method
+   * Main async render method — fully handles markdown, code blocks,
+   * mermaid diagrams, math, images, videos, YouTube embeds, tables,
+   * and bare-URL auto-linking.
    */
   async renderMarkdown(text: string): Promise<string> {
     if (!text) return '';
@@ -130,7 +134,7 @@ export class ContentRenderer {
     const htmlProtected: Map<string, string> = new Map();
     let htmlIdx = 0;
     processed = processed.replace(
-      /<(sup|div|span|ol|ul|li|h[1-6]|blockquote|hr|pre|code|strong|em|del|a|img|br|p)(\s[^>]*)?>([\s\S]*?)<\/\1>|<(br|hr|img)(\s[^>]*)?\/?>/gi,
+      /<(sup|div|span|ol|ul|li|h[1-6]|blockquote|hr|pre|code|strong|em|del|a|img|br|p|table|thead|tbody|tr|th|td)(\s[^>]*)?>[\s\S]*?<\/\1>|<(br|hr|img)(\s[^>]*)?\/?\s*>/gi,
       (match) => {
         const key = `__HTML_${htmlIdx++}__`;
         htmlProtected.set(key, match);
@@ -146,17 +150,17 @@ export class ContentRenderer {
     // Phase 2: Render the remaining text as Markdown
     let rendered = this.renderMarkdownToHtml(processed);
 
-    // Media Rendering enhancements
+    // Phase 3: Media Rendering — after markdown so bare URLs in paragraphs are caught
+    rendered = this.renderYouTubeEmbeds(rendered);
     rendered = this.renderImages(rendered);
     rendered = this.renderVideos(rendered);
-    rendered = this.renderYouTubeEmbeds(rendered);
+    rendered = this.renderAutoLinks(rendered);
 
-    // Phase 3: Restore async blocks (code, mermaid, math)
+    // Phase 4: Restore async blocks (code, mermaid, math)
     rendered = await this.replaceAsyncBlocks(rendered, blocks);
 
-    // Phase 4: Restore protected HTML
+    // Phase 5: Restore protected HTML
     for (const [key, val] of htmlProtected) {
-      // Escape the key for use in a string replace
       rendered = rendered.split(key).join(val);
     }
 
@@ -189,8 +193,9 @@ export class ContentRenderer {
   }
 
   /**
-   * Proper Markdown-to-HTML renderer. Processes the text block by block,
-   * then handles inline formatting within each block.
+   * Full Markdown-to-HTML renderer.
+   * Processes the text block-by-block (paragraphs, headings, lists, tables,
+   * blockquotes, hr) then applies inline formatting within each block.
    */
   private renderMarkdownToHtml(text: string): string {
     const lines = text.split('\n');
@@ -201,7 +206,7 @@ export class ContentRenderer {
       const line = lines[i];
 
       // Pass through placeholder lines untouched
-      if (line.trim().startsWith('__DEPTHINDEX_')) {
+      if (line.trim().startsWith('__DEPTHINDEX_') || line.trim().startsWith('__HTML_')) {
         outputBlocks.push(line.trim());
         i++;
         continue;
@@ -214,15 +219,26 @@ export class ContentRenderer {
         continue;
       }
 
-      // ATX Headings
-      const h1 = line.match(/^# (.+)/);
-      const h2 = line.match(/^## (.+)/);
-      const h3 = line.match(/^### (.+)/);
-      const h4 = line.match(/^#### (.+)/);
-      if (h4) { outputBlocks.push(`<h4 class="md-h4">${this.renderInline(h4[1])}</h4>`); i++; continue; }
-      if (h3) { outputBlocks.push(`<h3 class="md-h3">${this.renderInline(h3[1])}</h3>`); i++; continue; }
-      if (h2) { outputBlocks.push(`<h2 class="md-h2">${this.renderInline(h2[1])}</h2>`); i++; continue; }
-      if (h1) { outputBlocks.push(`<h2 class="md-h1">${this.renderInline(h1[1])}</h2>`); i++; continue; }
+      // ATX Headings (h1–h4)
+      const h4m = line.match(/^#### (.+)/);
+      const h3m = line.match(/^### (.+)/);
+      const h2m = line.match(/^## (.+)/);
+      const h1m = line.match(/^# (.+)/);
+      if (h4m) { outputBlocks.push(`<h4 class="md-h4">${this.renderInline(h4m[1])}</h4>`); i++; continue; }
+      if (h3m) { outputBlocks.push(`<h3 class="md-h3">${this.renderInline(h3m[1])}</h3>`); i++; continue; }
+      if (h2m) { outputBlocks.push(`<h2 class="md-h2">${this.renderInline(h2m[1])}</h2>`); i++; continue; }
+      if (h1m) { outputBlocks.push(`<h2 class="md-h1">${this.renderInline(h1m[1])}</h2>`); i++; continue; }
+
+      // GFM Tables: detect pipe-row followed by separator
+      if (/^\|.+\|/.test(line) && i + 1 < lines.length && /^\|[\s\-:|]+\|/.test(lines[i + 1])) {
+        const tableLines: string[] = [];
+        while (i < lines.length && /^\|.+\|/.test(lines[i])) {
+          tableLines.push(lines[i]);
+          i++;
+        }
+        outputBlocks.push(this.renderTable(tableLines));
+        continue;
+      }
 
       // Unordered list
       if (/^[ \t]*[-*+] /.test(line)) {
@@ -253,7 +269,7 @@ export class ContentRenderer {
           parts.push(this.renderInline(lines[i].replace(/^> /, '').trim()));
           i++;
         }
-        outputBlocks.push(`<blockquote class="md-blockquote">${parts.join('<br>')}</blockquote>`);
+        outputBlocks.push(`<blockquote class="md-blockquote"><p>${parts.join('<br>')}</p></blockquote>`);
         continue;
       }
 
@@ -263,28 +279,67 @@ export class ContentRenderer {
         continue;
       }
 
-      // Regular paragraph — collect consecutive non-empty, non-special lines
+      // Regular paragraph — each line = its own paragraph when followed by blank
+      // or collect consecutive non-empty non-special lines as one paragraph
       const paragraphLines: string[] = [];
       while (
         i < lines.length &&
         lines[i].trim() !== '' &&
         !lines[i].trim().startsWith('__DEPTHINDEX_') &&
+        !lines[i].trim().startsWith('__HTML_') &&
         !/^#{1,6} /.test(lines[i]) &&
         !/^[ \t]*[-*+] /.test(lines[i]) &&
         !/^[ \t]*\d+\. /.test(lines[i]) &&
         !/^> /.test(lines[i]) &&
+        !/^\|.+\|/.test(lines[i]) &&
         !/^(-{3,}|\*{3,}|_{3,})$/.test(lines[i].trim())
       ) {
         paragraphLines.push(lines[i]);
         i++;
       }
       if (paragraphLines.length > 0) {
-        const content = paragraphLines.map(l => this.renderInline(l)).join('<br>');
+        // Each line becomes its own sentence with a space between them in a paragraph.
+        // Use <br> only when a single consecutive blank line appears within paragraph group.
+        const content = paragraphLines
+          .map(l => this.renderInline(l))
+          .join(' ');
         outputBlocks.push(`<p class="md-p">${content}</p>`);
       }
     }
 
     return outputBlocks.join('\n');
+  }
+
+  /**
+   * Render a GFM-style markdown table from collected row lines.
+   */
+  private renderTable(tableLines: string[]): string {
+    if (tableLines.length < 2) return tableLines.join('\n');
+
+    const parseRow = (row: string) =>
+      row.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
+
+    const headers = parseRow(tableLines[0]);
+    // tableLines[1] is the separator row — skip it
+    const rows = tableLines.slice(2).map(parseRow);
+
+    const headerHtml = headers
+      .map(h => `<th class="md-th">${this.renderInline(h)}</th>`)
+      .join('');
+
+    const bodyHtml = rows
+      .map(cells => {
+        const tds = cells
+          .map(c => `<td class="md-td">${this.renderInline(c)}</td>`)
+          .join('');
+        return `<tr class="md-tr">${tds}</tr>`;
+      })
+      .join('');
+
+    return `<div class="md-table-wrapper"><table class="md-table">
+      <thead class="md-thead"><tr class="md-tr">${headerHtml}</tr></thead>
+      <tbody class="md-tbody">${bodyHtml}</tbody>
+    </table></div>`;
   }
 
   /**
@@ -297,9 +352,8 @@ export class ContentRenderer {
     // 0. Protect existing HTML tags from being mangled by markdown rules
     const htmlMap: Record<string, string> = {};
     s = s.replace(
-      /<(sup|sub|strong|em|del|code|a|span|div|br)(\s[^>]*)?>([\s\S]*?)<\/\1>|<__HTML_\d+__>|__HTML_\d+__|<(br|hr|img)(\s[^>]*)?\/?>/gi,
+      /<(sup|sub|strong|em|del|code|a|span|div|br)(\s[^>]*)?>[\s\S]*?<\/\1>|<__HTML_\d+__>|__HTML_\d+__|<(br|hr|img)(\s[^>]*)?\/?\s*>/gi,
       (match) => {
-        // Pass through __HTML_N__ placeholders untouched
         if (match.startsWith('__HTML_')) return match;
         const key = `__INLINEHTML_${Object.keys(htmlMap).length}__`;
         htmlMap[key] = match;
@@ -330,13 +384,20 @@ export class ContentRenderer {
     // Strikethrough ~~text~~
     s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
-    // 4. Links [text](url) — internal doc links get router-friendly class
+    // 4. Image before link (priority — avoid treating alt text link as a regular link)
+    s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+      const trimmedSrc = src.trim();
+      return `<img src="${trimmedSrc}" alt="${this.escapeHtml(alt)}" class="md-inline-img" loading="lazy" onerror="this.style.display='none'" />`;
+    });
+
+    // 5. Links [text](url) — internal doc links get router-friendly class
     s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => {
-      const isInternal = url.startsWith('/') && !url.startsWith('//');
+      const trimmedUrl = url.trim();
+      const isInternal = trimmedUrl.startsWith('/') && !trimmedUrl.startsWith('//');
       if (isInternal) {
-        return `<a href="${url}" class="md-link md-link-internal">${label}</a>`;
+        return `<a href="${trimmedUrl}" class="md-link md-link-internal">${label}</a>`;
       }
-      return `<a href="${url}" class="md-link" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      return `<a href="${trimmedUrl}" class="md-link" target="_blank" rel="noopener noreferrer">${label}</a>`;
     });
 
     // Restore inline code
@@ -384,9 +445,10 @@ export class ContentRenderer {
     if (typeof window === 'undefined' || !this.mermaidLoaded || !this.mermaidObj) {
       this.ensureMermaid();
       return `<div class="mermaid-container loading" id="container-${id}">
-        <div class="mermaid-diagram" id="${id}" data-diagram="${this.escapeHtml(diagramCode)}">
+        <div class="mermaid-diagram" id="${id}" data-diagram="${this.escapeAttr(diagramCode)}">
           <pre class="language-mermaid"><code>${this.escapeHtml(diagramCode)}</code></pre>
         </div>
+        <p class="mermaid-loading-hint">⏳ Loading diagram renderer…</p>
       </div>`;
     }
     try {
@@ -395,7 +457,7 @@ export class ContentRenderer {
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000)),
       ]);
       return `<div class="mermaid-container">
-        <div class="mermaid-diagram rendered" id="${id}" data-diagram="${this.escapeHtml(diagramCode)}">${svg}</div>
+        <div class="mermaid-diagram rendered" id="${id}" data-diagram="${this.escapeAttr(diagramCode)}">${svg}</div>
         <details class="mermaid-source">
           <summary>View diagram source</summary>
           <pre><code class="language-mermaid">${this.escapeHtml(diagramCode)}</code></pre>
@@ -404,8 +466,8 @@ export class ContentRenderer {
     } catch (error: any) {
       console.warn('[DepthIndex] Mermaid render failed:', error.message || error);
       return `<div class="mermaid-fallback">
-        <div class="mermaid-error-banner">Unable to render diagram</div>
-        <details class="mermaid-source">
+        <div class="mermaid-error-banner">⚠️ Unable to render diagram</div>
+        <details class="mermaid-source" open>
           <summary>View diagram code</summary>
           <pre><code class="language-mermaid">${this.escapeHtml(diagramCode)}</code></pre>
         </details>
@@ -424,12 +486,12 @@ export class ContentRenderer {
           ? `<div class="math-display">${html}</div>`
           : `<span class="math-inline">${html}</span>`;
       } catch (err: any) {
-        return `<code class="math-error" title="${this.escapeHtml(err.message)}">${this.escapeHtml(expression)}</code>`;
+        return `<code class="math-error" title="${this.escapeAttr(err.message)}">${this.escapeHtml(expression)}</code>`;
       }
     }
     return displayMode
-      ? `<div class="math-display math-loading" data-math="${this.escapeHtml(expression)}">$$\n${this.escapeHtml(expression)}\n$$</div>`
-      : `<span class="math-inline math-loading" data-math="${this.escapeHtml(expression)}">${this.escapeHtml(expression)}</span>`;
+      ? `<div class="math-display math-loading" data-math="${this.escapeAttr(expression)}">$$\n${this.escapeHtml(expression)}\n$$</div>`
+      : `<span class="math-inline math-loading" data-math="${this.escapeAttr(expression)}">${this.escapeHtml(expression)}</span>`;
   }
 
   private renderMathSync(expression: string): string {
@@ -442,7 +504,7 @@ export class ContentRenderer {
         return `<code class="math-error">${this.escapeHtml(expression)}</code>`;
       }
     }
-    return `<span class="math-inline math-loading" data-math="${this.escapeHtml(expression)}">${this.escapeHtml(expression)}</span>`;
+    return `<span class="math-inline math-loading" data-math="${this.escapeAttr(expression)}">${this.escapeHtml(expression)}</span>`;
   }
 
   renderCodeBlock(code: string, language?: string): string {
@@ -474,32 +536,62 @@ export class ContentRenderer {
 
     if (['typescript', 'javascript', 'ts', 'js', 'tsx', 'jsx'].includes(lang)) {
       return escaped
-        .replace(/\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|class|interface|type|enum|import|export|from|as|default|async|await|try|catch|finally|new|throw|typeof|instanceof|void|never|any|string|number|boolean|null|undefined)\b/g,
+        .replace(/\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|class|interface|type|enum|import|export|from|as|default|async|await|try|catch|finally|new|throw|typeof|instanceof|void|never|any|string|number|boolean|null|undefined|extends|implements|declare|abstract|private|public|protected|static|readonly)\b/g,
           '<span class="tok-kw">$1</span>')
         .replace(/\b(true|false)\b/g, '<span class="tok-bool">$1</span>')
         .replace(/(\/\/[^\n]*)/g, '<span class="tok-comment">$1</span>')
         .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="tok-comment">$1</span>')
         .replace(/'([^'\\]|\\.)*'/g, '<span class="tok-str">$&</span>')
         .replace(/"([^"\\]|\\.)*"/g, '<span class="tok-str">$&</span>')
-        .replace(/`([^`\\]|\\.)*`/g, '<span class="tok-str">$&</span>');
+        .replace(/`([^`\\]|\\.)*`/g, '<span class="tok-str">$&</span>')
+        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+    }
+    if (['python', 'py'].includes(lang)) {
+      return escaped
+        .replace(/\b(def|class|import|from|as|return|if|elif|else|for|while|with|try|except|finally|raise|pass|break|continue|lambda|yield|async|await|True|False|None|and|or|not|in|is)\b/g,
+          '<span class="tok-kw">$1</span>')
+        .replace(/(#[^\n]*)/g, '<span class="tok-comment">$1</span>')
+        .replace(/"""[\s\S]*?"""|'''[\s\S]*?'''/g, '<span class="tok-str">$&</span>')
+        .replace(/'([^'\\]|\\.)*'/g, '<span class="tok-str">$&</span>')
+        .replace(/"([^"\\]|\\.)*"/g, '<span class="tok-str">$&</span>')
+        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
     }
     if (['bash', 'sh', 'shell', 'zsh'].includes(lang)) {
       return escaped
         .replace(/(#[^\n]*)/g, '<span class="tok-comment">$1</span>')
-        .replace(/\b(npm|npx|pnpm|yarn|git|cd|ls|mkdir|rm|cp|mv|echo|export|source)\b/g,
-          '<span class="tok-kw">$1</span>');
+        .replace(/\b(npm|npx|pnpm|yarn|git|cd|ls|mkdir|rm|cp|mv|echo|export|source|curl|wget|chmod|sudo|apt|brew)\b/g,
+          '<span class="tok-kw">$1</span>')
+        .replace(/'([^'\\]|\\.)*'/g, '<span class="tok-str">$&</span>')
+        .replace(/"([^"\\]|\\.)*"/g, '<span class="tok-str">$&</span>');
     }
     if (['json'].includes(lang)) {
       return escaped
         .replace(/"([^"]+)"(\s*:)/g, '<span class="tok-key">"$1"</span>$2')
         .replace(/:\s*"([^"]+)"/g, ': <span class="tok-str">"$1"</span>')
-        .replace(/\b(true|false|null)\b/g, '<span class="tok-bool">$1</span>');
+        .replace(/\b(true|false|null)\b/g, '<span class="tok-bool">$1</span>')
+        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+    }
+    if (['html', 'xml', 'vue'].includes(lang)) {
+      return escaped
+        .replace(/&lt;(\/?[\w-]+)(\s[^&]*)?\s*(\/?)&gt;/g,
+          '&lt;<span class="tok-kw">$1</span>$2$3&gt;')
+        .replace(/&lt;!--[\s\S]*?--&gt;/g, '<span class="tok-comment">$&</span>');
     }
     if (['css', 'scss'].includes(lang)) {
       return escaped
         .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="tok-comment">$1</span>')
         .replace(/([.#][\w-]+)\s*\{/g, '<span class="tok-kw">$1</span> {')
-        .replace(/([\w-]+)\s*:/g, '<span class="tok-key">$1</span>:');
+        .replace(/([\w-]+)\s*:/g, '<span class="tok-key">$1</span>:')
+        .replace(/'([^'\\]|\\.)*'/g, '<span class="tok-str">$&</span>')
+        .replace(/"([^"\\]|\\.)*"/g, '<span class="tok-str">$&</span>');
+    }
+    if (['yaml', 'yml'].includes(lang)) {
+      return escaped
+        .replace(/(#[^\n]*)/g, '<span class="tok-comment">$1</span>')
+        .replace(/^([ \t]*)([\w-]+):/mg, '$1<span class="tok-key">$2</span>:')
+        .replace(/:\s*"([^"]+)"/g, ': <span class="tok-str">"$1"</span>')
+        .replace(/:\s*'([^']+)'/g, ': <span class="tok-str">\'$1\'</span>')
+        .replace(/\b(true|false|null)\b/g, '<span class="tok-bool">$1</span>');
     }
     return escaped;
   }
@@ -511,125 +603,143 @@ export class ContentRenderer {
     return text.replace(/[&<>"']/g, m => map[m]);
   }
 
+  private escapeAttr(text: string): string {
+    return text.replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
   /**
-   * Render images with lightbox support
+   * Auto-convert bare URLs to clickable links.
+   * Runs AFTER markdown link rendering so [text](url) links aren't double-processed.
+   * Skips URLs already inside href="..." or src="..." attributes.
+   */
+  private renderAutoLinks(text: string): string {
+    // Match bare URLs not already in an HTML attribute context
+    return text.replace(
+      /(?<![="'`])(https?:\/\/[^\s<>"')\]]+)(?![^<]*>)/g,
+      (url) => {
+        // Trim trailing punctuation that isn't part of the URL
+        const clean = url.replace(/[.,;:!?)\]]+$/, '');
+        const suffix = url.slice(clean.length);
+        const isInternal = false; // external links only
+        return `<a href="${clean}" class="md-link md-autolink" target="_blank" rel="noopener noreferrer">${clean}</a>${suffix}`;
+      }
+    );
+  }
+
+  /**
+   * Render images with lightbox support — handles markdown ![]() and bare image URLs.
    */
   private renderImages(text: string): string {
-    // Standard markdown images
+    // Standard markdown images — already handled in renderInline as md-inline-img;
+    // here we handle standalone paragraph-level image references (block-level figures)
     text = text.replace(
-      /!\[([^\]]*)\]\(([^)]+)\)/g,
-      (_, alt, src) => {
+      /<p class="md-p"><img src="([^"]+)" alt="([^"]*)" class="md-inline-img"[^>]*><\/p>/g,
+      (_, src, alt) => {
         return `<figure class="content-image">
-          <img src="${src}" alt="${alt}" loading="lazy" 
+          <img src="${src}" alt="${alt}" loading="lazy"
                onclick="this.closest('.content-image').classList.toggle('expanded')"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+               onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex')"
           />
           <div class="image-error" style="display:none">
-            <span class="icon">🖼️</span>
-            <span>Image unavailable: ${this.escapeHtml(src)}</span>
+            <span>🖼️ Image unavailable</span>
           </div>
           ${alt ? `<figcaption>${this.escapeHtml(alt)}</figcaption>` : ''}
         </figure>`;
       }
     );
-    
-    // Direct image URLs (not in markdown format)
+
+    // Bare image URLs in text (not already wrapped)
     text = text.replace(
       /(?<!["'(])(https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|svg|webp)(?:\?[^\s]*)?)(?!["')])/gi,
       (match) => {
-        return `<img src="${match}" alt="Image" loading="lazy" class="inline-image" 
-                     onerror="this.style.display='none'" />`;
+        return `<figure class="content-image">
+          <img src="${match}" alt="Image" loading="lazy"
+               onclick="this.closest('.content-image').classList.toggle('expanded')"
+               onerror="this.style.display='none'"
+          />
+        </figure>`;
       }
     );
-    
+
     return text;
   }
-  
+
   /**
-   * Render video embeds
+   * Render video embeds — handles .mp4/.webm/.ogg bare URLs and markdown links to videos.
    */
   private renderVideos(text: string): string {
-    // Direct video URLs
     text = text.replace(
       /(?<!["'(])(https?:\/\/[^\s]+\.(?:mp4|webm|ogg)(?:\?[^\s]*)?)(?!["')])/gi,
       (match) => {
-        const fileExt = match.split('.').pop()?.split('?')[0] || 'mp4';
+        const ext = (match.split('.').pop()?.split('?')[0] || 'mp4').toLowerCase();
+        const mimeType = ext === 'webm' ? 'video/webm' : ext === 'ogg' ? 'video/ogg' : 'video/mp4';
         return `<div class="content-video">
           <video controls preload="metadata" class="video-player">
-            <source src="${match}" type="video/${fileExt}">
+            <source src="${match}" type="${mimeType}">
             Your browser does not support the video tag.
           </video>
           <a href="${match}" class="video-download" download>📥 Download</a>
         </div>`;
       }
     );
-    
     return text;
   }
-  
+
   /**
-   * Render YouTube embeds
+   * Render YouTube embeds — lazy-loaded with thumbnail placeholder.
+   * Covers youtu.be, youtube.com/watch, youtube.com/shorts, and
+   * youtube.com/live URLs.
    */
   private renderYouTubeEmbeds(text: string): string {
-    // YouTube watch URLs
+    // Standard watch / youtu.be / live
     text = text.replace(
-      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[^\s]*)/g,
+      /(?<![("'])(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[^\s"')<]*)/g,
       (_, videoId) => {
-        return `<div class="youtube-embed" data-video-id="${videoId}">
-          <div class="youtube-placeholder" onclick="this.parentElement.querySelector('iframe').style.display='block';this.style.display='none';this.parentElement.querySelector('iframe').src=this.parentElement.querySelector('iframe').getAttribute('data-src')">
-            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" 
-                 alt="YouTube video thumbnail" 
-                 loading="lazy"
-                 class="youtube-thumbnail"
-            />
-            <div class="youtube-play-button">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="white">
-                <circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.6)"/>
-                <polygon points="18,14 18,34 34,24" fill="white"/>
-              </svg>
-            </div>
-          </div>
-          <iframe 
-            src="" 
-            data-src="https://www.youtube-nocookie.com/embed/${videoId}"
-            style="display:none"
-            width="100%" 
-            height="315" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>`;
+        return this.buildYouTubeEmbed(videoId, false);
       }
     );
-    
-    // YouTube short URLs
+
+    // Shorts
     text = text.replace(
-      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})(?:[^\s]*)/g,
+      /(?<![("'])(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})(?:[^\s"')<]*)/g,
       (_, videoId) => {
-        return `<div class="youtube-embed youtube-shorts" data-video-id="${videoId}">
-          <div class="youtube-placeholder" onclick="this.parentElement.querySelector('iframe').style.display='block';this.style.display='none';this.parentElement.querySelector('iframe').src=this.parentElement.querySelector('iframe').getAttribute('data-src')">
-            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" 
-                 alt="YouTube Shorts thumbnail" 
-                 loading="lazy"
-            />
-            <div class="youtube-play-button">▶</div>
-          </div>
-          <iframe 
-            src=""
-            data-src="https://www.youtube-nocookie.com/embed/${videoId}"
-            style="display:none"
-            width="315" 
-            height="560" 
-            frameborder="0"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>
-        </div>`;
+        return this.buildYouTubeEmbed(videoId, true);
       }
     );
-    
+
     return text;
+  }
+
+  private buildYouTubeEmbed(videoId: string, isShorts: boolean): string {
+    const width = isShorts ? '315' : '100%';
+    const height = isShorts ? '560' : '315';
+    const thumbClass = isShorts ? 'youtube-shorts' : '';
+    return `<div class="youtube-embed ${thumbClass}" data-video-id="${videoId}">
+      <div class="youtube-placeholder" onclick="(function(el){var iframe=el.parentElement.querySelector('iframe');iframe.src=iframe.getAttribute('data-src');iframe.style.display='block';el.style.display='none';})(this)">
+        <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg"
+             alt="YouTube video thumbnail"
+             loading="lazy"
+             class="youtube-thumbnail"
+        />
+        <div class="youtube-play-button" aria-label="Play video">
+          <svg width="56" height="56" viewBox="0 0 56 56">
+            <circle cx="28" cy="28" r="27" fill="rgba(0,0,0,0.65)" />
+            <polygon points="22,18 22,38 40,28" fill="white" />
+          </svg>
+        </div>
+      </div>
+      <iframe
+        src=""
+        data-src="https://www.youtube-nocookie.com/embed/${videoId}"
+        style="display:none"
+        width="${width}"
+        height="${height}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+        title="YouTube video"
+      ></iframe>
+    </div>`;
   }
 }

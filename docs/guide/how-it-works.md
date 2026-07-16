@@ -93,3 +93,31 @@ When offline capabilities are enabled, the plugin generates a service worker fil
    - It attempts to fetch from the network first to guarantee fresh documentation content.
    - If the network request fails (user is offline), it falls back to the local cache.
    - For cached hits, it updates the cache silently in the background when network connectivity becomes available (Stale-While-Revalidate).
+
+---
+
+## 5. AI Content Rendering Pipeline
+
+DepthIndex incorporates a specialized `ContentRenderer` designed to display rich, interactive, and structured markdown outputs from AI responses:
+- **GFM Tables**: Renders standard pipe tables (`| Header |`) with clean, responsive tabular elements.
+- **Code Syntax Highlighting**: Translates code blocks into styled HTML tokens for TypeScript, JavaScript, Python, JSON, HTML, CSS, and YAML.
+- **Mermaid Diagrams**: Detects ````mermaid```` code blocks and asynchronously loads the Mermaid JS engine to render native flowcharts, diagrams, and sequence charts inline. Features dark-mode theme adjustments and fallbacks to raw code if rendering fails.
+- **Math/KaTeX**: Renders mathematical expressions wrapped in inline (`$...$`) or block (`$$...$$`) delimiters using KaTeX.
+- **Media Previews**:
+  - **Images**: Renders standalone images inside clickable lightbox figures (`<figure>`) allowing zoom-in/out previewing, as well as regular inline images.
+  - **Videos**: Automatically embeds native `<video>` elements for `.mp4`, `.webm`, and `.ogg` video links with integrated controls and download options.
+  - **YouTube embeds**: Formats YouTube, Shorts, and Live URLs as lazy-loaded embedded players using a static thumbnail overlay. The actual `<iframe>` loads only when the user clicks the play button, preventing page weight issues.
+- **Auto-Linking**: Scans AI response paragraphs for bare HTTP/HTTPS URLs (such as developer donation links) and wraps them in HTML anchor elements with appropriate security attributes (`target="_blank" rel="noopener noreferrer"`).
+
+---
+
+## 6. UI Components, Layout, and Active Page Context
+
+DepthIndex provides an immersive, cohesive UI architecture:
+- **Floating Button Launcher**: A sleek, animation-driven trigger button featuring a pulsing AI Sparkle logo positioned in the corners of the viewport.
+- **Search Bar Integration**: Seamlessly hooks into the native VitePress search boxes (`.VPLocalSearchBox`, `.DocSearch-Modal`, `#local-search`), appending a unified "Ask AI" context bar inside the search overlay.
+- **Mobile Fullscreen Mode**: A responsive breakpoint design styling that transforms the Chat Panel into a fullscreen app on screens under `480px` wide.
+- **Automatic Page Context**: The active page acts directly as the contextual backdrop for the assistant. When viewing a page, DepthIndex detects the title, route, and headings:
+  - Users can click **Summarize Page** to immediately receive a concise summary of the active file.
+  - Users can click **Discuss Page** to instantiate a conversation focused explicitly on that page's contents without needing to enter or clarify the topic manually.
+

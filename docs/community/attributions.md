@@ -16,7 +16,8 @@ These libraries compile into the client-side package to power retrieval and comp
 * **[minisearch](https://github.com/lucaong/minisearch)**: A lightweight, high-performance client-side search engine. Used for posting list lookups and keyword indexing.
 * **[lz-string](https://github.com/pieroxy/lz-string)**: High-speed compression algorithm. Powers the build-time quantization serialization and browser-side lazy index decompressions.
 * **[stemmer](https://github.com/words/stemmer)**: Implementations of the Porter Stemmer algorithm, helping tokenizers reduce words to their common linguistic roots.
-* **[remove-stopwords](https://github.com/fergiemcdowall/remove-stopwords)**: Vocabulary stopword reference lists, filtering common words (like `the`, `and`) during query preprocessing.
+* **[stopword](https://github.com/fergiemcdowall/stopword)**: Vocabulary stopword reference lists, filtering common words (like `the`, `and`) during query preprocessing.
+
 
 ---
 

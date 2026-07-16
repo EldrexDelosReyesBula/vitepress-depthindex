@@ -119,8 +119,54 @@ export interface SiteProfile {
   currentPage: PageContext;
 }
 
+export interface PlacementConfig {
+  mode: 'search-bar' | 'panel' | 'cta' | 'both' | 'all';
+  searchBarSelector?: string;
+}
+
+export interface SearchBarConfig {
+  enabled?: boolean;
+  position?: 'top' | 'bottom';
+  maxAnswerLength?: number;
+  showExpandButton?: boolean;
+  placeholder?: string;
+  logo?: {
+    src?: string;
+    icon?: string;
+    alt?: string;
+  };
+  shortcut?: string;
+}
+
+export interface PanelConfig {
+  enabled?: boolean;
+  position?: 'right' | 'left';
+  defaultSize?: 'compact' | 'normal' | 'fullscreen';
+  showHistory?: boolean;
+  logo?: {
+    src?: string;
+    icon?: string;
+    alt?: string;
+  };
+  title?: string;
+  subtitle?: string;
+  showSettings?: boolean;
+}
+
+export interface FloatingButtonConfig {
+  enabled?: boolean;
+  position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  icon?: string;
+  pulse?: boolean;
+  label?: string;
+}
+
 export interface DepthIndexOptions {
   searchMode: 'on-device' | 'cloud' | 'hybrid';
+  placement?: PlacementConfig;
+  searchBar?: SearchBarConfig;
+  panel?: PanelConfig;
+  floatingButton?: FloatingButtonConfig;
   cloudAPI?: {
     provider: 'openai' | 'gemini' | 'anthropic' | 'custom';
     endpoint?: string;
