@@ -10,4 +10,6 @@ scratch/
 .devdiff.config.js
 .devdiffignore
 vitepress-depthindex-template/
+.npmrc
+
 
