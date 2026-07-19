@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "code": "tl",
+    "nativeName": "Tagalog",
+    "englishName": "Tagalog (Filipino)",
+    "direction": "ltr",
+    "contributors": ["DepthIndex Core"],
+    "lastUpdated": "2026-07-16",
+    "completion": 100
+  },
+  
+  "panel": {
+    "title": "Katulong sa Dokumentasyon",
+    "subtitle": "Magtanong tungkol sa mga dokumentong ito",
+    "placeholder": "Magtanong...",
+    "send": "Ipadala",
+    "close": "Isara",
+    "expand": "Palakihin",
+    "collapse": "Paliitin",
+    "newChat": "Bagong Usapan",
+    "settings": "Mga Setting",
+    "history": "Kasaysayan",
+    "poweredBy": "Pinapagana ng DepthIndex"
+  },
+  
+  "searchBar": {
+    "placeholder": "Magtanong o maghanap...",
+    "aiAnswer": "Sagot ng AI",
+    "openPanel": "Buksan sa Chat",
+    "noResults": "Walang nakitang resulta",
+    "searching": "Naghahanap..."
+  },
+  
+  "context": {
+    "detected": "Nauunawaan ko na ito ay tungkol sa",
+    "viewing": "Tinitingnan",
+    "summarize": "Ibuod",
+    "discuss": "Pag-usapan"
+  },
+  
+  "suggestions": {
+    "getStarted": "Paano magsimula?",
+    "features": "Ano ang mga pangunahing tampok?",
+    "configure": "Paano i-configure ito?",
+    "examples": "Magpakita ng mga halimbawa",
+    "summarize": "Ibuod ang pahinang ito"
+  },
+  
+  "search": {
+    "thinking": "Nag-iisip...",
+    "searching": "Naghahanap sa dokumentasyon...",
+    "analyzing": "Sinusuri ang mga resulta...",
+    "generating": "Gumagawa ng tugon...",
+    "found": "Nakahanap ng {count} kaugnay na seksyon",
+    "noResults": "Wala akong mahanap na impormasyon tungkol sa \"{query}\" sa dokumentasyon.",
+    "tryAgain": "Subukang baguhin ang iyong tanong"
+  },
+  
+  "answer": {
+    "confidence": "Katiyakan: {percent}%",
+    "references": "Mga Sanggunian",
+    "relatedTopics": "Kaugnay na Paksa",
+    "sourceLocal": "Sa Device",
+    "sourceCloud": "Cloud AI",
+    "sourceHybrid": "Hybrid",
+    "error": "May naganap na error. Pakisubukang muli.",
+    "limitedInfo": "Limitado ang impormasyon ng dokumentasyon sa paksang ito.",
+    "basedOnDocs": "Batay sa dokumentasyon:",
+    "heresWhat": "Narito ang aking nahanap:"
+  },
+  
+  "citations": {
+    "viewSource": "Tingnan ang pinagmulan",
+    "backToText": "Bumalik sa teksto"
+  },
+  
+  "actions": {
+    "copy": "Kopyahin",
+    "copied": "Nakopya!",
+    "edit": "I-edit",
+    "resend": "Ipadala muli",
+    "delete": "Burahin",
+    "helpful": "Nakatulong",
+    "notHelpful": "Hindi nakatulong",
+    "report": "Iulat",
+    "dismiss": "Alisin"
+  },
+  
+  "settings": {
+    "title": "Mga Setting",
+    "language": "Wika",
+    "languageDescription": "Pumili ng gustong wika para sa interface at mga sagot",
+    "searchMode": "Paraan ng Paghahanap",
+    "searchModeDescription": "Pumili kung paano bubuuin ang mga sagot",
+    "modes": {
+      "local": "Sa Device",
+      "localDescription": "Mabilis, pribado, gumagana offline",
+      "hybrid": "Hybrid",
+      "hybridDescription": "Lokal na paghahanap + Pagpapahusay ng Cloud AI",
+      "cloud": "Cloud AI",
+      "cloudDescription": "Pinakamahusay na sagot, kailangan ng internet"
+    },
+    "cloudConfig": "Cloud AI Configuration",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Ilagay ang iyong API key...",
+    "model": "Modelo",
+    "testConnection": "Subukan ang Koneksyon",
+    "saveConfiguration": "I-save ang Configuration",
+    "resetDefaults": "Ibalik sa Default",
+    "clearHistory": "Burahin ang Kasaysayan",
+    "clearHistoryConfirm": "Sigurado ka bang gusto mong burahin ang lahat ng kasaysayan ng usapan?"
+  },
+  
+  "errors": {
+    "indexLoad": "Hindi ma-load ang search index. Subukang i-refresh ang pahina.",
+    "searchFailed": "Nabigo ang paghahanap. Pakisubukang muli.",
+    "cloudFailed": "Hindi available ang Cloud AI. Ginagamit ang lokal na paghahanap.",
+    "offlineCloud": "Ikaw ay offline. Lumilipat sa lokal na paghahanap.",
+    "rateLimited": "Masyadong maraming kahilingan. Mangyaring maghintay sandali.",
+    "invalidKey": "Hindi wastong format ng API key. Pakisuri ang iyong key.",
+    "confirmReport": "Nais mo bang i-ulat ang error na ito at buksan ang pahina para sa pag-submit ng isyu?"
+  },
+  
+  "compliance": {
+    "noTracking": "Walang Pagsubaybay",
+    "noPII": "Walang Kinokolektang PII",
+    "localFirst": "Local-First",
+    "privacyNotice": "Paunawa sa Privacy",
+    "learnMore": "Matuto Pa"
+  }
+}

@@ -9,6 +9,22 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.1.6] - 2026-07-19
+
+### Added
+- **Delta Indexing & Caching** (`src/build/delta-indexer.ts`) — differential build system that hashes page content (SHA-256) to track changes. During updates, the client only downloads newly added or modified page chunks in a compressed delta payload (`/assets/depth-delta.json.br`), saving substantial bandwidth.
+- **Secure Update Engine** (`src/client/secure-updater.ts`) — manages local index integrity using ECDSA (P-256/SHA-256) signature verification on build manifests (`/.well-known/depthindex-manifest.json`). Stores processed indexes in client-side IndexedDB (`depthindex_secure_store`) and enforces a strict `50MB` cache ceiling.
+- **Device Adaptation Engine** (`src/client/device-adapter.ts`) — profiles device hardware (RAM, CPU cores, GPU) and network speed (2g/3g/4g/wifi). Automatically scales search properties (quantizing vectors to `int8`/`float16`/`float32`, scaling cache caps, tuning thread counts, and enabling/disabling animation frame rates) across Low, Medium, and High device tiers.
+- **Privacy Firewall** (`src/privacy/firewall.ts`) — client-side gateway that scrubs personally identifiable information (PII), including email addresses, phone numbers, and cloud API keys (`sk-` prefixes). Limits site-owner analytics access to strict aggregate metrics (`total_queries`, `citation_click_counts`, `error_categories`) while blocking tracking of raw user queries, history, or IP addresses.
+- **Cloud-Only Mode Builder** (`src/build/cloud-only-strategy.ts`) — builds lightweight documentation manifests and optimized `llms.txt`/`llms.jsonl` references while skipping local index payload emission to optimize compile time and build sizes.
+- **Bilingual Translation Packs** — introduced Tagalog (`tl`) localization files to augment default English support, allowing panels, settings, and warnings to toggle languages smoothly.
+
+### Changed
+- Refactored build-time pipeline to support delta manifest creation.
+- Standardized security checking within local-first storage adapters.
+
+---
+
 ## [1.1.5] - 2026-07-16
 
 ### Added
@@ -162,4 +178,3 @@ Initial production release of VitePress DepthIndex, an offline-first, local-firs
 * **Author**: Eldrex Delos Reyes Bula
 * **Email**: eldrexdelosreyesbula@gmail.com
 * **PayPal Donation URL**: [paypal.me/eldrexbula](https://www.paypal.com/paypalme/eldrexbula)
-

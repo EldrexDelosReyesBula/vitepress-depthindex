@@ -1,3 +1,4 @@
+/* Everything customizable via CSS variables */
 :root {
   /* ─── Colors ─── */
   --di-gray-50: #f9fafb;
@@ -10,11 +11,13 @@
   --di-gray-700: #374151;
   --di-gray-800: #1f2937;
   --di-gray-900: #111827;
-  
+
+  /* ─── Primary Colors ─── */
   --di-primary: #4f46e5;
   --di-primary-hover: #4338ca;
   --di-primary-light: #eef2ff;
   --di-primary-dark: #3730a3;
+  --di-primary-text: #ffffff;
   
   --di-success: #059669;
   --di-warning: #d97706;
@@ -23,25 +26,55 @@
   
   /* ─── Surfaces ─── */
   --di-bg: #ffffff;
+  --di-bg-secondary: #f8fafc;
+  --di-bg-tertiary: #f1f5f9;
+  --di-bg-hover: #f8fafc;
+  --di-bg-active: #eef2ff;
   --di-surface: #f8fafc;
   --di-surface-hover: #f1f5f9;
+  --di-surface-alt: #f1f5f9;
+  
+  /* ─── Borders ─── */
   --di-border: #e2e8f0;
   --di-border-light: #f1f5f9;
+  --di-border-focus: #4f46e5;
+  --di-border-radius-sm: 6px;
+  --di-border-radius-md: 8px;
+  --di-border-radius-lg: 12px;
+  --di-border-radius-xl: 16px;
+  --di-border-radius-full: 9999px;
+  
+  --di-radius-sm: var(--di-border-radius-sm);
+  --di-radius-md: var(--di-border-radius-md);
+  --di-radius-lg: var(--di-border-radius-lg);
+  --di-radius-xl: var(--di-border-radius-xl);
+  --di-radius-full: var(--di-border-radius-full);
+  --di-radius: var(--di-border-radius-md);
   
   /* ─── Text ─── */
   --di-text: #0f172a;
   --di-text-secondary: #475569;
   --di-text-tertiary: #94a3b8;
   --di-text-inverse: #ffffff;
+  --di-text-link: #4f46e5;
+  --di-text-link-hover: #4338ca;
+  --di-text-code: #c7254e;
+  --di-bg-code: rgba(0, 0, 0, 0.05);
   
   /* ─── Typography ─── */
   --di-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --di-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --di-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   --di-font-size-xs: 0.75rem;
   --di-font-size-sm: 0.8125rem;
   --di-font-size-base: 0.875rem;
   --di-font-size-lg: 1rem;
   --di-font-size-xl: 1.125rem;
+  --di-font-size-2xl: 1.25rem;
+  --di-font-weight-normal: 400;
+  --di-font-weight-medium: 500;
+  --di-font-weight-semibold: 600;
+  --di-font-weight-bold: 700;
+  --di-line-height: 1.6;
   
   /* ─── Spacing ─── */
   --di-space-1: 4px;
@@ -51,28 +84,106 @@
   --di-space-5: 20px;
   --di-space-6: 24px;
   --di-space-8: 32px;
-  
-  /* ─── Borders ─── */
-  --di-radius-sm: 6px;
-  --di-radius-md: 8px;
-  --di-radius-lg: 12px;
-  --di-radius-xl: 16px;
-  --di-radius-full: 9999px;
+  --di-space-10: 40px;
   
   /* ─── Shadows ─── */
   --di-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --di-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --di-shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --di-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+  --di-shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08);
   --di-shadow-xl: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+  --di-shadow-panel: 0 20px 60px rgba(0, 0, 0, 0.12);
   
   /* ─── Transitions ─── */
-  --di-transition-fast: 150ms ease;
-  --di-transition-base: 200ms ease;
-  --di-transition-slow: 300ms ease;
+  --di-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --di-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --di-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   
   /* ─── Panel ─── */
   --di-panel-width: 420px;
-  --di-panel-height: 560px;
+  --di-panel-height: 600px;
+  --di-panel-max-height: calc(100vh - 48px);
+  --di-panel-z-index: 9999;
   --di-header-height: 52px;
   --di-footer-height: 64px;
+  
+  /* ─── Floating Launcher Button ─── */
+  --di-float-size: 48px;
+  --di-float-radius: 14px;
+  --di-float-bottom: 24px;
+  --di-float-right: 24px;
+  --di-float-z-index: 9998;
+  
+  /* ─── Search Bar ─── */
+  --di-search-answer-max-height: 300px;
+  
+  /* ─── Messages ─── */
+  --di-msg-user-bg: #4f46e5;
+  --di-msg-user-text: #ffffff;
+  --di-msg-user-radius: 12px 12px 2px 12px;
+  --di-msg-assistant-bg: #f8fafc;
+  --di-msg-assistant-text: #0f172a;
+  --di-msg-assistant-radius: 12px 12px 12px 2px;
+  --di-msg-max-width: 85%;
+  
+  /* ─── Code Blocks ─── */
+  --di-code-bg: #1e293b;
+  --di-code-text: #e2e8f0;
+  --di-code-radius: 8px;
+  --di-code-font-size: 0.8125rem;
+  
+  /* ─── Citations ─── */
+  --di-cite-color: #4f46e5;
+  --di-cite-bg: #eef2ff;
+  --di-cite-radius: 4px;
+  --di-cite-font-size: 0.75em;
+  
+  /* ─── Scrollbar ─── */
+  --di-scrollbar-width: 6px;
+  --di-scrollbar-track: transparent;
+  --di-scrollbar-thumb: #cbd5e1;
+  --di-scrollbar-thumb-hover: #94a3b8;
+}
+
+/* Dark mode — VitePress sets html.dark on the root element */
+html.dark {
+  --di-primary: #818cf8;
+  --di-primary-hover: #6366f1;
+  --di-primary-light: rgba(99, 102, 241, 0.15);
+  --di-primary-dark: #4f46e5;
+  --di-primary-text: #ffffff;
+  
+  --di-bg: #0f172a;
+  --di-bg-secondary: #1e293b;
+  --di-bg-tertiary: #0f172a;
+  --di-bg-hover: #1e293b;
+  --di-bg-active: rgba(99, 102, 241, 0.15);
+  
+  --di-surface: #1e293b;
+  --di-surface-alt: #0f172a;
+  --di-surface-hover: #334155;
+  --di-border: #334155;
+  --di-border-light: #1e293b;
+  
+  --di-text: #f1f5f9;
+  --di-text-secondary: #94a3b8;
+  --di-text-tertiary: #64748b;
+  --di-text-inverse: #0f172a;
+  --di-text-link: #818cf8;
+  --di-text-link-hover: #a5b4fc;
+  --di-text-code: #f43f5e;
+  --di-bg-code: rgba(255, 255, 255, 0.08);
+  
+  --di-msg-user-bg: #4f46e5;
+  --di-msg-user-text: #ffffff;
+  --di-msg-assistant-bg: #1e293b;
+  --di-msg-assistant-text: #f1f5f9;
+  
+  --di-code-bg: #0f172a;
+  --di-code-text: #f1f5f9;
+  
+  --di-cite-color: #818cf8;
+  --di-cite-bg: rgba(99, 102, 241, 0.15);
+  
+  --di-scrollbar-thumb: #475569;
+  --di-scrollbar-thumb-hover: #64748b;
 }

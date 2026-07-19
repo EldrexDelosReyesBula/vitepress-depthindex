@@ -1,30 +1,29 @@
+---
+title: Security Policy
+description: Security guidelines, vulnerability reporting, and supported version references.
+---
+
 # Security Policy
 
-We take the security and integrity of **VitePress DepthIndex** seriously. This policy outlines our security practices, scanning processes, and instructions for reporting vulnerabilities.
+## Reporting
+We take the security of VitePress DepthIndex seriously. If you find a security vulnerability or data leak:
+- **Do not** report it publicly in GitHub issues.
+- Email a description of the issue to the maintainer: `eldrexdelosreyesbula@gmail.com`.
+- We will acknowledge your report within 48 hours and coordinate a fix.
 
----
+## Measures
+We use multiple layers of security to protect user configurations:
+- **PII Firewall**: Client-side filters scrub personal data (emails, keys, and phone numbers) from queries before they are sent to external APIs.
+- **ECDSA Signatures**: Build manifests are verified using ECDSA cryptographic signatures to prevent loading compromised index files.
+- **Prefix Sandboxing**: Stored variables are isolated from other scripts running on the page to prevent cross-site scripting (XSS) leaks.
 
-## 1. Security Safeguards
+## Supported Versions
+Security updates are backported to the following active versions:
+| Version Range | Status |
+| :--- | :--- |
+| **`v1.1.6`** | Supported (Current stable release) |
+| **`v1.1.x`** | Supported |
+| **`v1.0.x`** | Deprecated (Upgrade recommended) |
 
-* **Index Exclusions**: The indexer automatically ignores hidden system directories (folders starting with `.`, such as `.git/`, `.changeset/`, `.devdiff/`, and `.vscode/`) during build crawling. This prevents secrets or internal configurations from being accidentally compiled into your documentation search index.
-* **Input Sanitization**: Users' queries and LLM generated results are rendered inside Vue using HTML-escaped templates to mitigate Cross-Site Scripting (XSS) risks.
-* **Safe Local Storage**: API keys provided by the user are stored in the client browser's `localStorage` and sent directly to target API endpoints over secure HTTPS channels, bypassing intermediary servers.
-
----
-
-## 2. Reporting a Vulnerability
-
-If you identify a security vulnerability or bug in the plugin, please report it directly to the author instead of raising a public GitHub issue:
-* **Contact Email**: eldrexdelosreyesbula@gmail.com
-* **Information to Include**:
-  - Detailed description of the vulnerability.
-  - Step-by-step instructions (or proof of concept script) to replicate the issue.
-  - Potential impact of the bug.
-
----
-
-## 3. Response Process
-
-* **Acknowledgement**: We aim to acknowledge your vulnerability report within **48 hours**.
-* **Fix Timeline**: We work to resolve validated issues and publish patches on npm within **7 days** of verification.
-* **Advisory**: Once the fix is published, we will release a security advisory detailing the fix and acknowledging the reporter.
+## Disclosure
+Once a patch has been released, we will publish a security advisory detailing the vulnerability and acknowledge the reporter in the release notes.

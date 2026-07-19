@@ -1,64 +1,64 @@
-# Contributing Guide
-
-Thank you for choosing to contribute to **VitePress DepthIndex**! We welcome bug reports, documentation improvements, issue resolutions, and feature requests.
-
+---
+title: Contributing
+description: Contribution guidelines, development setups, and coding standards for VitePress DepthIndex.
 ---
 
-## 1. Local Development Setup
+# Contributing
 
-To set up the development environment on your local machine:
+Thank you for your interest in contributing to VitePress DepthIndex! We welcome pull requests, bug reports, and suggestions.
 
-1. **Clone the repository**:
+## Code of Conduct
+By participating in this project, you agree to abide by our [Code of Conduct](/community/code-of-conduct). Please report any violations or unacceptable behaviors to `eldrexdelosreyesbula@gmail.com`.
+
+## Getting Started
+- Search existing issues and pull requests to ensure your contribution isn't already being worked on.
+- If you find a bug or have a feature request, please open a new issue describing the problem or proposal.
+
+## Development Setup
+To set up a local development environment:
+1. Fork and clone the repository:
    ```bash
    git clone https://github.com/EldrexDelosReyesBula/vitepress-depthindex.git
    cd vitepress-depthindex
    ```
-2. **Install dependencies**:
+2. Install the dependencies using pnpm:
    ```bash
-   npm install
+   pnpm install
    ```
-3. **Build the package**:
+3. Run the compiler in watch mode:
    ```bash
-   npm run build
+   pnpm run dev
    ```
-4. **Launch documentation site locally**:
+4. Start the documentation server:
    ```bash
-   npm run docs:dev
+   pnpm run docs:dev
    ```
 
----
+## Pull Requests
+- Create a new branch for your changes (e.g. `feat/custom-icons`).
+- Ensure all tests pass and there are no TypeScript compilation errors.
+- Commit your changes using descriptive, conventional commit messages.
+- Submit a pull request to the `main` branch, explaining the changes and linking to relevant issues.
 
-## 2. Code Guidelines & Standards
+## Coding Standards
+- Follow the existing codebase structure and styles.
+- Maintain documentation integrity: do not modify existing comments or docstrings unless requested.
+- Ensure all public functions and configuration interfaces include JSDoc comments.
 
-* **TypeScript**: Use strict type annotations (we compile with `"strict": true` configured in `tsconfig.json`).
-* **Framework Dependencies**: Keep peer dependencies (like Vue and VitePress) externalized.
-* **Security & Privacy**: 
-  - Never add remote telemetry, analytics, tracking cookies, or network requests that leak user queries.
-  - Do not commit local development folders (like `.devdiff`) to Git.
-  - Use `Object.create(null)` for string-keyed object maps to prevent prototype collisions.
+## Testing
+We use Vitest for unit testing. Write tests for any new features or bug fixes:
+- Run all tests:
+  ```bash
+  pnpm run test
+  ```
+- Run tests in watch mode:
+  ```bash
+  pnpm run test:watch
+  ```
 
----
-
-## 3. Running Verification Tests
-
-Before submitting any code changes, you must verify that all unit tests and stress tests pass:
-
-```bash
-# Execute all vitest tests
-npm run test
-```
-
-Ensure that the average search query latency in the stress test remains well below **30 milliseconds** on your machine.
-
----
-
-## 4. Submitting a Pull Request
-
-1. Create a descriptive feature branch from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-2. Implement your changes, add tests where applicable, and run the verification tests.
-3. Commit and push your branch to GitHub.
-4. Open a Pull Request (PR) against the `main` branch.
-5. Provide a clear description in your PR of what changes were made and how they were tested.
+## Documentation
+- If your pull request introduces new configurations or API changes, update the relevant files in the `docs` folder.
+- Ensure all files build correctly before submitting a PR:
+  ```bash
+  pnpm run docs:build
+  ```

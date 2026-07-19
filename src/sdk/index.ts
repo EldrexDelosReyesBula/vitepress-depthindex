@@ -329,7 +329,7 @@ export class PluginRegistry {
   private createPluginContext(manifest: PluginManifest): PluginContext {
     return {
       manifest,
-      depthIndexVersion: '1.1.0',
+      depthIndexVersion: '1.1.6',
       siteContext: this.siteContextEngine.detectSiteProfile(),
       storage: this.createSandboxedStorage(manifest.id),
       logger: this.createPluginLogger(manifest.id),
@@ -402,3 +402,6 @@ export class PluginRegistry {
     return new I18nAPI();
   }
 }
+
+export { PrivacyFirewall } from '../privacy/firewall.js';
+export { TranslationEngine } from '../i18n/engine.js';

@@ -1,79 +1,106 @@
 ---
 title: FAQ & Troubleshooting
-description: Frequently asked questions and resolution steps for common errors and limitations.
+description: Frequently asked questions and troubleshooting steps for VitePress DepthIndex.
 ---
 
-# Frequently Asked Questions & Troubleshooting
+# FAQ & Troubleshooting
 
-This section covers common errors, platform limitations, security configurations, and frequently asked questions for developers integrating **VitePress DepthIndex**.
+## General
 
----
+### What is VitePress DepthIndex?
+It is a local-first, on-device search and conversational AI assistant plugin designed for VitePress documentation sites.
 
-## 1. Common Errors & Resolutions
+### Does it require a paid subscription?
+No. DepthIndex is open-source and free. In on-device mode, it runs entirely client-side without incurring any API fees.
 
-### Error: "API key for [provider] is missing"
-* **Why it happens**: You configured `searchMode: 'hybrid'` or `searchMode: 'cloud'`, but no build-time API key was set in the configuration options, and the user hasn't configured a local browser API key.
-* **Resolution**:
-  - **Option A (User Configuration)**: Direct users to click the **Settings Gear Icon** ⚙️ on the Chat Assistant UI panel. They can select their API provider (OpenAI, Gemini, or Anthropic) and input their personal API key. This key is saved in their browser's local storage.
-  - **Option B (Build Configuration)**: Pass the key directly in the plugin options (not recommended for public repositories):
-    ```typescript
-    DepthIndex({
-      cloudAPI: {
-        provider: 'openai',
-        apiKey: 'your-openai-api-key'
-      }
-    })
-    ```
+## Installation
 
-### Error: "CORS / Blocked by browser security policies"
-* **Why it happens**: When calling cloud models directly from the browser (like Anthropic's Claude API), the browser might block requests due to CORS safety constraints if the provider doesn't permit browser fetches.
-* **Resolution**: 
-  - To bypass CORS constraints, configure a custom proxy or gateway endpoint under the `custom` provider.
-  - Set `cloudAPI.provider: 'custom'` and set the `cloudAPI.endpoint` URL to point to your secure API gateway (which appends the appropriate authorization headers and forwards requests).
-  - Our Anthropic client uses `'dangerously-allow-browser': 'true'` header fields where supported, but browser-direct Anthropic calls are best handled behind a lightweight proxy.
+### Why does my build fail with "Cannot find module"?
+Verify that the package is added to your `package.json` dependencies and run a clean install:
+```bash
+npm install
+```
 
-### Error: "Cannot find module 'fs' or 'path' or its corresponding type declarations"
-* **Why it happens**: During TypeScript building or tsup compiles, Node.js types are missing from the compiler scope.
-* **Resolution**: Install `@types/node` as a devDependency in your documentation repository:
-  ```bash
-  npm install -D @types/node
-  ```
+### Can I use DepthIndex with TypeScript?
+Yes. DepthIndex includes type definitions out-of-the-box. If your configuration uses strict typings, cast the plugin registry inside `.vitepress/config.ts`:
+```typescript
+plugins: [DepthIndex() as any]
+```
 
-### Error: "listen EADDRINUSE: address already in use :::4173"
-* **Why it happens**: When running `npm run docs:preview` (or `vitepress preview docs`), another active local development server or background process is already listening on the default preview port (`4173`).
-* **Resolution**: Run the preview server on a different free port by appending the port argument:
-  ```bash
-  npm run docs:preview -- --port 4175
-  ```
+## Configuration
 
-### Error: "DataCloneError: object could not be cloned"
-* **Why it happens**: Browser database engines (`IndexedDB`) require stored objects to contain strictly *structured cloneable* data. Passing raw Vue reactive proxies or callback functions directly to IndexedDB object stores throws a clone exception.
-* **Resolution**: DepthIndex automatically sanitizes data and unwraps Vue proxies before IndexedDB persistence. If you are developing custom plugins that write to IndexedDB, sanitize custom structures using `toRaw()` or a JSON serialization fallback.
+### How do I disable the floating chat button?
+Disable it in your configuration:
+```typescript
+floatingButton: {
+  enabled: false
+}
+```
 
-### Behavior: Consent Dialog before Error Report Redirections
-* **Why it happens**: To respect user privacy and prevent unexpected outbound traffic, DepthIndex prompts the user with a confirmation dialog before writing error metadata to the clipboard and launching external issue tracker pages.
-* **Resolution**: Users can click "OK" to approve the redirection or "Cancel" to dismiss.
+### How do I change the default search shortcut?
+Change the shortcut tooltip in the search bar settings:
+```typescript
+searchBar: {
+  shortcut: 'Ctrl+/'
+}
+```
 
----
+## Search Issues
 
-## 2. Limitations
+### Why are some pages missing from the search results?
+- Check if pages are listed in `indexConfig.excludePages`.
+- Verify that pages contain valid Markdown headers (`#`, `##`) for extraction.
+- Clear your browser's IndexedDB database (`depthindex_secure_store`) to ensure the local index is updated.
 
-* **No Local Generative AI (Default)**: Out-of-the-box, the local "On-Device" search mode does not run a heavy local LLM (like WebLLM) to generate conversational sentences. Instead, it extracts the most relevant document sections, links, and code blocks, and synthesizes a structured offline summary response. For full natural language conversational chat, enable `hybrid` mode.
-* **Storage Footprint**: The LZ-String index compressed footprint is extremely small (~0.5MB per 1000 pages). However, for extremely large documentation sites (exceeding 10,000 pages), the index size may exceed 5MB. In such cases, lazy loading ensures page load speeds are not affected, but initial search interaction will have a brief download latency.
-* **Cross-Device Keys**: Because client-side API keys are stored exclusively in the browser's `localStorage` for privacy compliance, users will need to input their API key once per device.
+### How do I improve search result relevance?
+Reduce the `chunkSize` (e.g. to 300 words) in your index configurations to isolate smaller text blocks, which yields more precise matches.
 
----
+## Cloud AI Issues
 
-## 3. FAQs
+### Why does the chat assistant show "Unauthorized (401)"?
+Ensure your API key is correct and active. If you are using environment variables, verify that `VITE_DEPTHINDEX_CLOUD_API_KEY` is set correctly on your build server.
 
-### Can I style the floating button or search overlay to match my theme?
-Yes. The plugin UI components inherit CSS theme variables from VitePress (such as `--vp-c-brand`, `--vp-c-bg`, and `--vp-c-text-1`). You can also override the custom component CSS classes directly in your `.vitepress/theme/custom.css` file. (See the [Community & Customization Guide](/guide/community) for examples).
+### What happens if I hit my API rate limits?
+DepthIndex will automatically display a rate-limiting notification in the UI and fall back to local template answers silently.
 
-### Does it index external links or external markdown assets?
-No. DepthIndex operates entirely at build time. It only extracts and indexes markdown files that are part of the VitePress project root. It will not crawl external web links.
+## Offline Issues
 
-### How do I disable the default Floating Button and render my own Search Bar?
-Set `ui.showFloatingButton: false` and `ui.enableModal: false` in the configuration. You can then import the programmatic client-side engine `DepthIndexEngine` from the package client exports and build your own input components.
+### Why does search fail when I am offline?
+- Verify that the Service Worker (`depthindex-sw.js`) is registered correctly.
+- Ensure your site is served over **HTTPS** (or localhost), which is required for browser caching.
 
-### Is the PWA registration safe for multi-site hosts?
-Yes. The service worker is scoped to the base path of the site where the script is located (`/depthindex-sw.js`). It will only intercept and cache GET requests for that specific origin.
+### How do I verify offline caching?
+Open Developer Tools, go to the Application tab, select Service Workers, and check the "Offline" checkbox. Refresh the page to test caching.
+
+## Performance
+
+### Why is the search modal lagging?
+- Reduce the number of search results to render (e.g. limit to 3 results).
+- Quantize vectors to `int8` in your performance settings.
+- Ensure that the Web Worker is enabled to run search computations on a background thread.
+
+## UI Issues
+
+### How do I customize colors to match my brand?
+Override the global CSS variable tokens in your custom stylesheet. For example:
+```css
+:root {
+  --depthindex-color-primary: #3b82f6; /* Custom Blue */
+}
+```
+
+### Can I use custom icons?
+Yes. DepthIndex uses FontAwesome icons. You can configure custom icon classes (e.g. `fa-solid fa-brain`) under `floatingButton.icon`.
+
+## Error Messages
+
+### "Signature invalid" in console
+This means the index file has failed integrity verification checks. Verify your deploy pipeline signatures or clear your browser's IndexedDB storage.
+
+### "Quota Exceeded" in console
+IndexedDB is full. The engine automatically purges old chat sessions to free up space.
+
+## Getting Help
+If you cannot find a solution to your problem:
+- Open a GitHub issue at [EldrexDelosReyesBula/vitepress-depthindex/issues](https://github.com/EldrexDelosReyesBula/vitepress-depthindex/issues).
+- Send an email to the maintainer: `eldrexdelosreyesbula@gmail.com`.

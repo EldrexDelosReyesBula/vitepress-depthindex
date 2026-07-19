@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { NLUEngine } from '../src/client/nlu-engine.js';
 
-describe('DepthIndex 1.2.0 NLU Engine', () => {
+describe('DepthIndex 1.1.6 NLU Engine', () => {
 
   it('should understand query type, intent and strategy correctly', () => {
     const nlu = new NLUEngine();

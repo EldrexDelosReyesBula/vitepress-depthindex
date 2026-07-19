@@ -1,6 +1,6 @@
 import { PIIDetector } from './pii-detector.js';
 import { SecurityManager } from './security.js';
-import { SearchResult } from '../types/index.js';
+import { SearchResult, AIPersonalityConfig, PERSONALITY_PRESETS } from '../types/index.js';
 
 export interface CloudAdapterOptions {
   provider: 'openai' | 'gemini' | 'anthropic' | 'custom';
@@ -20,6 +20,7 @@ export interface CloudAIRequest {
     temperature?: number;
     scopeToDocs?: boolean;
   };
+  personality?: AIPersonalityConfig;
 }
 
 export interface CloudAIResponse {
@@ -80,11 +81,89 @@ export class CloudAdapter {
     return { valid: true };
   }
   
-  private getSystemPrompt(scopeToDocs: boolean, docContext: string): string {
-    if (scopeToDocs) {
-      return `You are a documentation assistant. You MUST ONLY answer based on the provided documentation content. 
+  private getSystemPrompt(
+    scopeToDocs: boolean,
+    docContext: string,
+    personality?: AIPersonalityConfig
+  ): string {
+    let systemPrompt = '';
+    
+    // Resolve preset
+    let activeConfig: AIPersonalityConfig = {};
+    if (personality) {
+      if (personality.preset && personality.preset !== 'custom' && PERSONALITY_PRESETS[personality.preset]) {
+        activeConfig = { ...PERSONALITY_PRESETS[personality.preset] };
+      }
+      // Merge properties
+      if (personality.tone) {
+        activeConfig.tone = { ...activeConfig.tone, ...personality.tone };
+      }
+      if (personality.behavior) {
+        activeConfig.behavior = { ...activeConfig.behavior, ...personality.behavior };
+      }
+      if (personality.customPrompt) {
+        activeConfig.customPrompt = personality.customPrompt;
+      }
+    }
+    
+    // Base persona definition
+    systemPrompt += `You are a documentation assistant. `;
+    
+    // Process tone directions
+    if (activeConfig.tone) {
+      const tone = activeConfig.tone;
+      if (tone.formality === 'casual') {
+        systemPrompt += `Use a casual, friendly, and conversational tone. `;
+      } else if (tone.formality === 'formal') {
+        systemPrompt += `Use a formal, professional, and objective tone. `;
+      }
+      
+      if (tone.enthusiasm === 'enthusiastic') {
+        systemPrompt += `Be very enthusiastic, welcoming, and encouraging. `;
+      } else if (tone.enthusiasm === 'reserved') {
+        systemPrompt += `Be reserved, direct, and matter-of-fact. `;
+      }
+      
+      if (tone.verbosity === 'concise') {
+        systemPrompt += `Keep answers brief, concise, and to the point. Avoid fluff. `;
+      } else if (tone.verbosity === 'detailed') {
+        systemPrompt += `Provide detailed explanations, thorough walkthroughs, and step-by-step instructions. `;
+      }
+      
+      if (tone.emojis === 'none') {
+        systemPrompt += `DO NOT use emojis in your response. `;
+      } else if (tone.emojis === 'minimal') {
+        systemPrompt += `Use emojis very sparingly (at most 1 or 2 when highly relevant). `;
+      } else if (tone.emojis === 'moderate') {
+        systemPrompt += `Use emojis moderately to make your response friendly and readable. `;
+      }
+      
+      if (tone.firstPerson === true) {
+        systemPrompt += `You may use first-person pronouns (I, we) when explaining. `;
+      } else if (tone.firstPerson === false) {
+        systemPrompt += `Avoid first-person pronouns (I, we). Speak in the third person or passive voice. `;
+      }
+    }
+    
+    // Process behavior directions
+    if (activeConfig.behavior) {
+      const behavior = activeConfig.behavior;
+      if (behavior.alwaysCite) {
+        systemPrompt += `Always cite references using [Source X] notation where X corresponds to the source number. `;
+      }
+      if (behavior.admitUncertainty) {
+        systemPrompt += `If the answer cannot be found in the documentation context, admit that you do not know. `;
+      }
+      if (behavior.suggestFollowUps) {
+        systemPrompt += `End your response by suggesting 2-3 relevant follow-up questions the user might want to ask. `;
+      }
+      if (behavior.offerElaboration) {
+        systemPrompt += `Offer to elaborate or explain specific details if the user asks. `;
+      }
+    }
 
-RULES:
+    if (scopeToDocs) {
+      systemPrompt += `\n\nRULES:
 1. ONLY use information from the documentation provided below
 2. If the answer is NOT in the documentation, respond with: "This topic is not covered in the current documentation. However, here are related topics that might help: [suggest 2-3 related topics from the docs]"
 3. NEVER provide information from outside the documentation
@@ -96,9 +175,26 @@ RULES:
 
 DOCUMENTATION CONTENT:
 ${docContext.substring(0, 100000)}`;
+    } else {
+      systemPrompt += `\n\nPrioritize information from the documentation when available. If information is not available, clearly state that and suggest related documentation topics. Do not process or store PII.`;
     }
     
-    return `You are a documentation assistant. Prioritize information from the documentation when available. If information is not available, clearly state that and suggest related documentation topics. Do not process or store PII.`;
+    // Append custom system prompt additions
+    if (activeConfig.customPrompt) {
+      let customAddition = activeConfig.customPrompt;
+      if (typeof window !== 'undefined') {
+        customAddition = customAddition
+          .replace(/{siteName}/g, window.location.hostname)
+          .replace(/{pageTitle}/g, document.title || 'Documentation Page');
+      } else {
+        customAddition = customAddition
+          .replace(/{siteName}/g, 'Documentation Site')
+          .replace(/{pageTitle}/g, 'Documentation Page');
+      }
+      systemPrompt += `\n\nADDITIONAL INSTRUCTIONS:\n${customAddition}`;
+    }
+    
+    return systemPrompt;
   }
   
   private sanitizeMessages(messages: Array<{ role: string; content: string }>): {
@@ -156,7 +252,8 @@ ${docContext.substring(0, 100000)}`;
         role: 'system',
         content: this.getSystemPrompt(
           config.options?.scopeToDocs ?? true,
-          docContext
+          docContext,
+          config.personality
         ),
       },
       {

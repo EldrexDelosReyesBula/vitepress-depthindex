@@ -1,10 +1,13 @@
-# License Agreement
-
-**VitePress DepthIndex** is licensed under the MIT License.
-
+---
+title: License
+description: MIT License text and third-party software attribution notices.
 ---
 
-## MIT License
+# MIT License
+
+## Full Text
+```
+MIT License
 
 Copyright (c) 2026 Eldrex Delos Reyes Bula
 
@@ -25,3 +28,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
+
+## Attribution
+The MIT License requires keeping the copyright notice and license text in all copies of the software. You must include this notice when embedding, modifying, or redistributing VitePress DepthIndex.
+
+## Third-Party
+This project bundle includes dependencies that are licensed under their own terms:
+- **minisearch**: MIT License (Copyright Luca Ongaro).
+- **lz-string**: MIT License (Copyright pieroxy).
+- **stemmer**: MIT License (Copyright Titus Wormer).
+These licenses are preserved inside the package distribution bundle.

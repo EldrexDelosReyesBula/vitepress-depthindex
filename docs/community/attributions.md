@@ -1,37 +1,29 @@
 ---
 title: Tool Attributions
-description: Credits and attributions for third-party libraries, packages, and tools powering DepthIndex.
+description: Acknowledgement of core, build, and test libraries that power VitePress DepthIndex.
 ---
 
 # Tool Attributions
 
-**VitePress DepthIndex** stands on the shoulders of giants. This page credits and documents all core libraries, compilation tools, and testing utilities used in this project.
+VitePress DepthIndex is built on top of several open-source libraries.
 
----
+## Core
+Libraries powering runtime search, compression, and UI:
+- **[minisearch](https://github.com/lucaong/minisearch)**: Lightweight client-side search engine.
+- **[lz-string](https://github.com/pieroxy/lz-string)**: Base64 string compression library.
+- **[stemmer](https://github.com/words/stemmer)**: Porter stemmer algorithm implementation.
+- **[Vue.js](https://github.com/vuejs/core)**: Progressive framework powering chat overlays.
 
-## 1. Core Runtime Dependencies
+## Build
+Libraries used during build-time indexing and packaging:
+- **[vitepress](https://github.com/vuejs/vitepress)**: Static site generator powering the documentation.
+- **[vite](https://github.com/vitejs/vite)**: Build tool and bundler.
+- **[tsup](https://github.com/egoist/tsup)**: Zero-config TypeScript bundler.
+- **[typescript](https://github.com/microsoft/TypeScript)**: Typed programming language.
 
-These libraries compile into the client-side package to power retrieval and compression:
+## Testing
+Libraries used to verify codebase accuracy:
+- **[vitest](https://github.com/vitest-dev/vitest)**: High-performance unit testing framework.
 
-* **[minisearch](https://github.com/lucaong/minisearch)**: A lightweight, high-performance client-side search engine. Used for posting list lookups and keyword indexing.
-* **[lz-string](https://github.com/pieroxy/lz-string)**: High-speed compression algorithm. Powers the build-time quantization serialization and browser-side lazy index decompressions.
-* **[stemmer](https://github.com/words/stemmer)**: Implementations of the Porter Stemmer algorithm, helping tokenizers reduce words to their common linguistic roots.
-* **[stopword](https://github.com/fergiemcdowall/stopword)**: Vocabulary stopword reference lists, filtering common words (like `the`, `and`) during query preprocessing.
-
-
----
-
-## 2. Peer & Framework Tools
-
-* **[VitePress](https://github.com/vuejs/vitepress)**: Next-generation Vue-powered static site builder. Builds the core documentation pipeline and plugin interfaces.
-* **[Vue.js](https://github.com/vuejs/core)**: Reactive JavaScript framework. Powers the search modal, floating button launchers, citations grids, and AI assistant chat templates.
-* **[Vite](https://github.com/vitejs/vite)**: Fast frontend build tool and dev server. Orchestrates plugin compilation, HTML injection hooks, and virtual modules.
-
----
-
-## 3. Development & Testing Ecosystem
-
-* **[tsup](https://github.com/egoist/tsup)**: Zero-config bundler powered by esbuild. Compiles all TS modules into standard ESM and CommonJS packages.
-* **[TypeScript](https://github.com/microsoft/TypeScript)**: Typed superset of JavaScript, ensuring type safety and compile-time checks across the codebase.
-* **[Vitest](https://github.com/vitest-dev/vitest)**: High-performance unit testing framework. Runs indexing math checks, BM25 scorers, and the 1,000-page latency stress test.
-* **[devdiff](https://github.com/EldrexDelosReyesBula/devdiff)**: Git changes analysis, changelogs generation and commit tracking helper.
+## Thanks
+Special thanks to all open-source contributors, community translators, and users who support the project!

@@ -162,7 +162,7 @@ export interface FloatingButtonConfig {
 }
 
 export interface DepthIndexOptions {
-  searchMode: 'on-device' | 'cloud' | 'hybrid';
+  searchMode?: 'on-device' | 'cloud' | 'hybrid';
   placement?: PlacementConfig;
   searchBar?: SearchBarConfig;
   panel?: PanelConfig;
@@ -215,7 +215,184 @@ export interface DepthIndexOptions {
   };
   seo?: SEOConfig;
   extensions?: any[];
+  analytics?: {
+    enabled?: boolean;
+    storage?: 'indexeddb' | 'localstorage' | 'memory' | 'none';
+    externalEndpoint?: string;
+    externalHeaders?: Record<string, string>;
+    batchSize?: number;
+    flushInterval?: number;
+    maxEvents?: number;
+    trackedCategories?: ('search' | 'click' | 'feedback' | 'error' | 'session' | 'navigation')[];
+    excludePages?: string[];
+    notice?: NoticeConfig;
+  };
+  privacy?: {
+    showNotice?: boolean;
+    privacyPolicyUrl?: string;
+  };
+  language?: LanguageConfig;
+  settings?: SettingsConfig;
+  ai?: {
+    personality?: AIPersonalityConfig;
+    logo?: {
+      src?: string;
+      alt?: string;
+      size?: 'sm' | 'md' | 'lg';
+      position?: 'header' | 'welcome' | 'both';
+    };
+  };
+  usageLimits?: UsageLimitsConfig;
 }
+
+export interface LanguageConfig {
+  default?: string;
+  allowUserChange?: boolean;
+  availableLanguages?: string[];
+  forceLanguage?: string;
+  translateAnswers?: boolean;
+  communityTranslationsUrl?: string;
+}
+
+export interface SettingsConfig {
+  showSettings?: boolean;
+  allowCloudConfig?: boolean;
+  allowModeChange?: boolean;
+  allowLanguageChange?: boolean;
+  hiddenSections?: ('cloud' | 'mode' | 'language' | 'history')[];
+}
+
+export interface AIPersonalityConfig {
+  preset?: 'professional' | 'friendly' | 'concise' | 'teacher' | 'mentor' | 'custom';
+  customPrompt?: string;
+  tone?: {
+    formality?: 'casual' | 'neutral' | 'formal';
+    enthusiasm?: 'reserved' | 'balanced' | 'enthusiastic';
+    verbosity?: 'concise' | 'balanced' | 'detailed';
+    emojis?: 'none' | 'minimal' | 'moderate';
+    firstPerson?: boolean;
+  };
+  behavior?: {
+    alwaysCite?: boolean;
+    suggestFollowUps?: boolean;
+    admitUncertainty?: boolean;
+    offerElaboration?: boolean;
+    greeting?: 'warm' | 'brief' | 'none';
+  };
+  logo?: {
+    src?: string;
+    alt?: string;
+    size?: 'sm' | 'md' | 'lg';
+    position?: 'header' | 'welcome' | 'both';
+  };
+}
+
+export interface UsageLimitsConfig {
+  tokens?: {
+    maxPerRequest?: number;
+    maxPerUserPerDay?: number;
+    maxPerUserPerMonth?: number;
+    maxContextTokens?: number;
+    maxResponseTokens?: number;
+  };
+  response?: {
+    localMaxChars?: number;
+    cloudMaxChars?: number;
+    inlineMaxChars?: number;
+    truncationMessage?: string;
+  };
+  rateLimit?: {
+    queriesPerMinute?: number;
+    queriesPerHour?: number;
+    cooldownMessage?: string;
+  };
+  subscription?: {
+    enabled?: boolean;
+    checkAccess?: () => Promise<boolean>;
+    upgradeMessage?: string;
+    upgradeUrl?: string;
+  };
+}
+
+export const PERSONALITY_PRESETS: Record<string, AIPersonalityConfig> = {
+  professional: {
+    tone: {
+      formality: 'formal',
+      enthusiasm: 'reserved',
+      verbosity: 'balanced',
+      emojis: 'none',
+      firstPerson: false,
+    },
+    behavior: {
+      alwaysCite: true,
+      suggestFollowUps: true,
+      admitUncertainty: true,
+      offerElaboration: true,
+      greeting: 'brief',
+    },
+  },
+  friendly: {
+    tone: {
+      formality: 'casual',
+      enthusiasm: 'enthusiastic',
+      verbosity: 'balanced',
+      emojis: 'moderate',
+      firstPerson: true,
+    },
+    behavior: {
+      alwaysCite: true,
+      suggestFollowUps: true,
+      admitUncertainty: true,
+      offerElaboration: true,
+      greeting: 'warm',
+    },
+  },
+  concise: {
+    tone: {
+      formality: 'neutral',
+      enthusiasm: 'reserved',
+      verbosity: 'concise',
+      emojis: 'none',
+      firstPerson: false,
+    },
+    behavior: {
+      alwaysCite: true,
+      suggestFollowUps: false,
+      admitUncertainty: true,
+      offerElaboration: false,
+      greeting: 'none',
+    },
+  },
+  teacher: {
+    tone: {
+      formality: 'neutral',
+      enthusiasm: 'balanced',
+      verbosity: 'detailed',
+      emojis: 'minimal',
+      firstPerson: true,
+    },
+    behavior: {
+      alwaysCite: true,
+      suggestFollowUps: true,
+      admitUncertainty: true,
+      offerElaboration: true,
+      greeting: 'warm',
+    },
+  },
+};
+
+export interface NoticeConfig {
+  type: 'banner' | 'modal' | 'bottom-sheet' | 'fullscreen' | 'inline';
+  title: string;
+  content: string;
+  primaryAction?: { text: string; onClick: () => void; icon?: string };
+  secondaryAction?: { text: string; onClick: () => void };
+  dismissible?: boolean;
+  showOnce?: boolean;
+  position?: 'top' | 'bottom';
+  icon?: string;
+}
+
 
 export interface SearchResult {
   chunk: {

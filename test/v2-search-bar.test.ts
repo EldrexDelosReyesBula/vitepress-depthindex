@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { SearchBarIntegration } from '../src/client/search-bar-integration.js';
 import { DepthIndexEngine } from '../src/client/search-engine.js';
 
-describe('DepthIndex 1.2.0 Search Bar Integration', () => {
+describe('DepthIndex 1.1.6 Search Bar Integration', () => {
 
   it('should initialize and watch queries when DOM elements exist', async () => {
     // 1. Setup mock DOM structure

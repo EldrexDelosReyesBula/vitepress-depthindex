@@ -7,38 +7,46 @@
     >
       <!-- Header -->
       <div class="panel-header">
-        <div class="header-left">
-          <!-- Sparkle Logo icon -->
-          <svg class="logo-icon sparkle-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); flex-shrink: 0;">
-            <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
-          </svg>
-          <div class="header-info">
-            <span class="header-title">{{ panelTitle }}</span>
-            <span class="badge" :class="searchMode">{{ searchModeLabel }}</span>
+        <slot name="header">
+          <div class="header-left">
+            <slot name="logo">
+              <img v-if="logoSrc && (logoPosition === 'header' || logoPosition === 'both')" :src="logoSrc" :alt="logoAlt" :class="['logo-icon', logoSize]" />
+              <svg v-else class="logo-icon sparkle-icon" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); flex-shrink: 0;">
+                <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
+              </svg>
+            </slot>
+            <slot name="title">
+              <div class="header-info">
+                <span class="header-title">{{ panelTitle }}</span>
+                <span class="badge" :class="searchMode">{{ searchModeLabel }}</span>
+              </div>
+            </slot>
           </div>
-        </div>
-        <div class="header-actions">
-          <!-- New chat -->
-          <button @click="newSession" :title="t('panel.newChat')" class="hbtn">
-            <i class="fa-solid fa-plus"></i>
-          </button>
-          <!-- History -->
-          <button @click="toggleHistory" :title="t('panel.history')" class="hbtn" :class="{ active: showHistory }">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-          </button>
-          <!-- Cloud settings -->
-          <button v-if="showSettingsButton" @click="openCloudConfig" :title="t('panel.settings')" class="hbtn">
-            <i class="fa-solid fa-gear"></i>
-          </button>
-          <!-- Expand -->
-          <button @click="toggleSize" :title="t('panel.expand')" class="hbtn">
-            <i :class="panelSize === 'fullscreen' || panelSize === 'large' ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
-          </button>
-          <!-- Close -->
-          <button @click="emit('close')" :title="t('panel.close')" class="hbtn hbtn-close">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
+          <div class="header-actions">
+            <slot name="header-actions">
+              <!-- New chat -->
+              <button @click="newSession" :title="t('panel.newChat')" class="hbtn">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+              <!-- History -->
+              <button @click="toggleHistory" :title="t('panel.history')" class="hbtn" :class="{ active: showHistory }">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+              </button>
+              <!-- Cloud settings -->
+              <button v-if="showSettingsButton" @click="openCloudConfig" :title="t('panel.settings')" class="hbtn">
+                <i class="fa-solid fa-gear"></i>
+              </button>
+              <!-- Expand -->
+              <button @click="toggleSize" :title="t('panel.expand')" class="hbtn">
+                <i :class="panelSize === 'fullscreen' || panelSize === 'large' ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
+              </button>
+              <!-- Close -->
+              <button @click="emit('close')" :title="t('panel.close')" class="hbtn hbtn-close">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </slot>
+          </div>
+        </slot>
       </div>
 
       <!-- History Sidebar -->
@@ -94,112 +102,123 @@
 
         <!-- Empty state -->
         <div v-if="messages.length === 0" class="chat-intro">
-          <div class="intro-logo">
-            <svg class="sparkle-icon" viewBox="0 0 24 24" fill="currentColor" width="32" height="32" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); opacity: 0.8; margin-bottom: 12px;">
-              <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
-            </svg>
-          </div>
-          <h2>{{ t('panel.subtitle') }}</h2>
-          <div class="di-intro-greeting" v-html="siteGreetingHtml"></div>
+          <slot name="welcome">
+            <div class="intro-logo">
+              <slot name="welcome-icon">
+                <img v-if="logoSrc && (logoPosition === 'welcome' || logoPosition === 'both')" :src="logoSrc" :alt="logoAlt" :class="['logo-icon-welcome', logoSize]" />
+                <svg v-else class="sparkle-icon" viewBox="0 0 24 24" fill="currentColor" width="32" height="32" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); opacity: 0.8; margin-bottom: 12px;">
+                  <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" />
+                </svg>
+              </slot>
+            </div>
+            <slot name="welcome-text">
+              <h2>{{ t('panel.subtitle') }}</h2>
+              <div class="di-intro-greeting" v-html="siteGreetingHtml"></div>
+            </slot>
+          </slot>
         </div>
 
         <!-- Message List -->
-        <div
-          v-for="msg in messages"
-          :key="msg.id"
-          :class="['message-wrapper', msg.role]"
-        >
-          <div class="message-bubble">
-            <div class="message-sender-name">
-              {{ msg.role === 'user' ? 'You' : 'Assistant' }}
-              <span v-if="msg.offlineFallback" class="offline-pill">Offline</span>
-            </div>
+        <slot name="messages" :messages="messages">
+          <div
+            v-for="msg in messages"
+            :key="msg.id"
+            :class="['message-wrapper', msg.role]"
+          >
+            <slot name="message" :message="msg">
+              <div class="message-bubble">
+                <div class="message-sender-name">
+                  {{ msg.role === 'user' ? 'You' : 'Assistant' }}
+                  <span v-if="msg.offlineFallback" class="offline-pill">Offline</span>
+                </div>
 
-            <!-- Loading -->
-            <div v-if="msg.loading" class="loading-state-wrapper">
-              <LoadingStates
-                :stage="loadingStage"
-                :progress="loadingProgress"
-                :scanned-pages="loadingScannedPages"
-              />
-            </div>
+                <!-- Loading -->
+                <div v-if="msg.loading" class="loading-state-wrapper">
+                  <LoadingStates
+                    :stage="loadingStage"
+                    :progress="loadingProgress"
+                    :scanned-pages="loadingScannedPages"
+                  />
+                </div>
 
-            <!-- Message Content -->
-            <template v-if="editingMessageId === msg.id">
-              <div class="message-edit-mode">
-                <textarea 
-                  v-model="editingContent" 
-                  class="edit-textarea"
-                  rows="3"
-                  @keydown.enter.exact.prevent="saveEditedMessage(msg.id)"
-                  @keydown.esc="cancelEditing"
-                ></textarea>
-                <div class="edit-actions">
-                  <button @click="saveEditedMessage(msg.id)" class="edit-btn save-btn-edit">{{ t('action.save') }}</button>
-                  <button @click="cancelEditing" class="edit-btn cancel-btn-edit">{{ t('action.cancel') }}</button>
+                <!-- Message Content -->
+                <template v-if="editingMessageId === msg.id">
+                  <div class="message-edit-mode">
+                    <textarea 
+                      v-model="editingContent" 
+                      class="edit-textarea"
+                      rows="3"
+                      @keydown.enter.exact.prevent="saveEditedMessage(msg.id)"
+                      @keydown.esc="cancelEditing"
+                    ></textarea>
+                    <div class="edit-actions">
+                      <button @click="saveEditedMessage(msg.id)" class="edit-btn save-btn-edit">{{ t('action.save') }}</button>
+                      <button @click="cancelEditing" class="edit-btn cancel-btn-edit">{{ t('action.cancel') }}</button>
+                    </div>
+                  </div>
+                </template>
+                <div v-else class="message-content" v-html="msg.renderedContent || msg.content"></div>
+
+                <!-- Source Citations -->
+                <div v-if="msg.sources && msg.sources.length > 0" class="sources-list">
+                  <span class="sources-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    {{ t('answer.references') }}
+                  </span>
+                  <div class="sources-pills">
+                    <component
+                      v-for="(source, idx) in msg.sources"
+                      :key="idx"
+                      :is="isValidUrl(source.url) ? 'a' : 'span'"
+                      v-bind="isValidUrl(source.url) ? { href: resolveSourceUrl(source.url), target: '_blank', rel: 'noopener noreferrer' } : {}"
+                      class="source-pill"
+                      :title="`${source.title} (${Math.round(source.confidence * 100)}% match)`"
+                    >
+                      <span class="source-num">{{ Number(idx) + 1 }}</span>
+                      <span class="source-name">{{ source.title }}</span>
+                    </component>
+                  </div>
+                </div>
+
+                <!-- Message Actions -->
+                <div v-if="msg.role === 'assistant' && !msg.loading" class="message-actions">
+                  <!-- Thumbs up -->
+                  <button @click="giveFeedback(msg.id, 'up')" :class="['act-btn', { active: msg.feedback === 'up' }]" :title="t('feedback.helpful')">
+                    <i class="fa-regular fa-thumbs-up"></i>
+                  </button>
+                  <!-- Thumbs down -->
+                  <button @click="giveFeedback(msg.id, 'down')" :class="['act-btn', { active: msg.feedback === 'down' }]" :title="t('feedback.notHelpful')">
+                    <i class="fa-regular fa-thumbs-down"></i>
+                  </button>
+                  <!-- Copy -->
+                  <button @click="copyMessage(msg.content)" class="act-btn" :title="t('feedback.copy')">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                  <!-- Delete -->
+                  <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+
+                <!-- User Edit Actions -->
+                <div v-if="msg.role === 'user' && editingMessageId !== msg.id && !loading" class="message-actions user-actions">
+                  <!-- Edit -->
+                  <button @click="startEditing(msg)" class="act-btn" :title="t('action.edit')">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                  </button>
+                  <!-- Resend -->
+                  <button @click="resendMessage(msg)" class="act-btn" :title="t('action.resend')">
+                    <i class="fa-solid fa-rotate-right"></i>
+                  </button>
+                  <!-- Delete -->
+                  <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
                 </div>
               </div>
-            </template>
-            <div v-else class="message-content" v-html="msg.renderedContent || msg.content"></div>
-
-            <!-- Source Citations -->
-            <div v-if="msg.sources && msg.sources.length > 0" class="sources-list">
-              <span class="sources-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                {{ t('answer.references') }}
-              </span>
-              <div class="sources-pills">
-                <component
-                  v-for="(source, idx) in msg.sources"
-                  :key="idx"
-                  :is="isValidUrl(source.url) ? 'a' : 'span'"
-                  v-bind="isValidUrl(source.url) ? { href: resolveSourceUrl(source.url), target: '_blank', rel: 'noopener noreferrer' } : {}"
-                  class="source-pill"
-                  :title="`${source.title} (${Math.round(source.confidence * 100)}% match)`"
-                >
-                  <span class="source-num">{{ Number(idx) + 1 }}</span>
-                  <span class="source-name">{{ source.title }}</span>
-                </component>
-              </div>
-            </div>
-
-            <!-- Message Actions -->
-            <div v-if="msg.role === 'assistant' && !msg.loading" class="message-actions">
-              <!-- Thumbs up -->
-              <button @click="giveFeedback(msg.id, 'up')" :class="['act-btn', { active: msg.feedback === 'up' }]" :title="t('feedback.helpful')">
-                <i class="fa-regular fa-thumbs-up"></i>
-              </button>
-              <!-- Thumbs down -->
-              <button @click="giveFeedback(msg.id, 'down')" :class="['act-btn', { active: msg.feedback === 'down' }]" :title="t('feedback.notHelpful')">
-                <i class="fa-regular fa-thumbs-down"></i>
-              </button>
-              <!-- Copy -->
-              <button @click="copyMessage(msg.content)" class="act-btn" :title="t('feedback.copy')">
-                <i class="fa-regular fa-copy"></i>
-              </button>
-              <!-- Delete -->
-              <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
-                <i class="fa-regular fa-trash-can"></i>
-              </button>
-            </div>
-
-            <!-- User Edit Actions -->
-            <div v-if="msg.role === 'user' && editingMessageId !== msg.id && !loading" class="message-actions user-actions">
-              <!-- Edit -->
-              <button @click="startEditing(msg)" class="act-btn" :title="t('action.edit')">
-                <i class="fa-regular fa-pen-to-square"></i>
-              </button>
-              <!-- Resend -->
-              <button @click="resendMessage(msg)" class="act-btn" :title="t('action.resend')">
-                <i class="fa-solid fa-rotate-right"></i>
-              </button>
-              <!-- Delete -->
-              <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
-                <i class="fa-regular fa-trash-can"></i>
-              </button>
-            </div>
+            </slot>
           </div>
-        </div>
+        </slot>
       </div>
 
       <!-- Error Bar -->
@@ -228,39 +247,56 @@
 
       <!-- Suggested Questions -->
       <div class="suggestions-area" v-if="messages.length === 0 && suggestions.length > 0">
-        <SuggestedQuestions :questions="suggestions" @select="submitQuestion" />
+        <slot name="suggestions">
+          <SuggestedQuestions :questions="suggestions" @select="submitQuestion" />
+        </slot>
       </div>
 
       <!-- Input Area -->
-      <div class="panel-input-area">
-        <div class="input-row">
-          <textarea
-            ref="textareaRef"
-            v-model="query"
-            rows="1"
-            class="chat-textarea"
-            :placeholder="t('panel.placeholder')"
-            aria-label="Ask anything about the documentation"
-            @keydown.enter.exact.prevent="submitQuery"
-          ></textarea>
-          <button class="send-btn" :disabled="!query.trim() || loading" @click="submitQuery" :title="t('panel.send')">
-            <i class="fa-solid fa-paper-plane"></i>
-          </button>
-        </div>
-        <div class="panel-footer">
-          <div class="footer-left">
-            <button @click="openCloudConfig" class="cloud-status-btn">
-              <i :class="searchMode === 'on-device' ? 'fa-solid fa-laptop' : 'fa-solid fa-cloud'"></i>
-              <span class="mode-badge">{{ searchMode === 'on-device' ? t('answer.source.local') : t('answer.source.cloud') }}</span>
-            </button>
+      <slot name="footer">
+        <div class="panel-input-area">
+          <!-- Subscription Gating Block -->
+          <div v-if="subscriptionGated" class="subscription-gating-banner" style="padding: 16px; text-align: center; border-top: 1px solid var(--di-border);">
+            <i class="fa-solid fa-lock gating-icon" style="font-size: 20px; color: var(--di-text-secondary); margin-bottom: 8px;"></i>
+            <p class="gating-msg" style="font-size: 13px; color: var(--di-text-secondary); margin-bottom: 12px;">{{ props.options?.usageLimits?.subscription?.upgradeMessage || 'Upgrade to Premium for unlimited AI-powered documentation search.' }}</p>
+            <a v-if="props.options?.usageLimits?.subscription?.upgradeUrl" :href="props.options?.usageLimits?.subscription?.upgradeUrl" class="gating-btn" target="_blank" style="display: inline-block; padding: 6px 16px; background: var(--di-primary); color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">Upgrade Now</a>
           </div>
-          <div class="footer-right">
-            <span class="powered-by">
-              <a href="https://depthindex.vercel.app" target="_blank" rel="noopener noreferrer">{{ t('panel.poweredBy') }}</a>
-            </span>
-          </div>
+          
+          <template v-else>
+            <slot name="input">
+              <div class="input-row">
+                <textarea
+                  ref="textareaRef"
+                  v-model="query"
+                  rows="1"
+                  class="chat-textarea"
+                  :placeholder="t('panel.placeholder')"
+                  aria-label="Ask anything about the documentation"
+                  @keydown.enter.exact.prevent="submitQuery"
+                ></textarea>
+                <button class="send-btn" :disabled="!query.trim() || loading" @click="submitQuery" :title="t('panel.send')">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </slot>
+            <div class="panel-footer">
+              <div class="footer-left">
+                <button @click="openCloudConfig" class="cloud-status-btn">
+                  <i :class="searchMode === 'on-device' ? 'fa-solid fa-laptop' : 'fa-solid fa-cloud'"></i>
+                  <span class="mode-badge">{{ searchMode === 'on-device' ? t('answer.source.local') : t('answer.source.cloud') }}</span>
+                </button>
+              </div>
+              <div class="footer-right">
+                <slot name="attribution">
+                  <span class="powered-by">
+                    <a href="https://depthindex.vercel.app" target="_blank" rel="noopener noreferrer">{{ t('panel.poweredBy') }}</a>
+                  </span>
+                </slot>
+              </div>
+            </div>
+          </template>
         </div>
-      </div>
+      </slot>
     </div>
   </Transition>
 </template>
@@ -318,6 +354,133 @@ const currentError = ref<DepthIndexError | null>(null);
 const lastQuery = ref('');
 const editingMessageId = ref<string | null>(null);
 const editingContent = ref('');
+
+// Custom Customization properties
+const logoSrc = computed(() => props.options?.ai?.logo?.src || props.options?.ai?.personality?.logo?.src || '');
+const logoAlt = computed(() => props.options?.ai?.logo?.alt || props.options?.ai?.personality?.logo?.alt || 'AI Logo');
+const logoSize = computed(() => `logo-size-${props.options?.ai?.logo?.size || props.options?.ai?.personality?.logo?.size || 'md'}`);
+const logoPosition = computed(() => props.options?.ai?.logo?.position || props.options?.ai?.personality?.logo?.position || 'both');
+
+const subscriptionGated = ref(false);
+
+function showErrorBanner(message: string) {
+  currentError.value = {
+    id: String(Date.now()),
+    message,
+    severity: ErrorSeverity.WARNING,
+    category: ErrorCategory.VALIDATION,
+    timestamp: Date.now(),
+    recoverable: true
+  } as any;
+}
+
+const checkRateLimits = (): boolean => {
+  if (!props.options?.usageLimits?.rateLimit) return true;
+  
+  const now = Date.now();
+  const rateLimit = props.options.usageLimits.rateLimit;
+  const historyKey = 'depthindex_query_timestamps';
+  const timestamps: number[] = JSON.parse(localStorage.getItem(historyKey) || '[]');
+  
+  const oneHourAgo = now - 3600000;
+  let activeTimestamps = timestamps.filter(t => t > oneHourAgo);
+  
+  if (rateLimit.queriesPerMinute) {
+    const oneMinuteAgo = now - 60000;
+    const perMinuteCount = activeTimestamps.filter(t => t > oneMinuteAgo).length;
+    if (perMinuteCount >= rateLimit.queriesPerMinute) {
+      const errorMsg = rateLimit.cooldownMessage || 'Too many requests. Please wait a moment.';
+      showErrorBanner(errorMsg);
+      return false;
+    }
+  }
+  
+  if (rateLimit.queriesPerHour) {
+    if (activeTimestamps.length >= rateLimit.queriesPerHour) {
+      const errorMsg = rateLimit.cooldownMessage || 'Hourly limit exceeded. Please try again later.';
+      showErrorBanner(errorMsg);
+      return false;
+    }
+  }
+  
+  activeTimestamps.push(now);
+  localStorage.setItem(historyKey, JSON.stringify(activeTimestamps));
+  return true;
+};
+
+const checkTokenLimits = (estimatedRequestTokens: number): boolean => {
+  if (!props.options?.usageLimits?.tokens) return true;
+  
+  const tokens = props.options.usageLimits.tokens;
+  const today = new Date().toISOString().split('T')[0];
+  const thisMonth = today.substring(0, 7);
+  
+  if (tokens.maxPerUserPerDay) {
+    const dailyKey = 'depthindex_tokens_daily';
+    const dailyData = JSON.parse(localStorage.getItem(dailyKey) || '{}');
+    if (dailyData.date === today) {
+      if (dailyData.count + estimatedRequestTokens > tokens.maxPerUserPerDay) {
+        showErrorBanner('Daily token limit reached. Please try again tomorrow.');
+        return false;
+      }
+    }
+  }
+  
+  if (tokens.maxPerUserPerMonth) {
+    const monthlyKey = 'depthindex_tokens_monthly';
+    const monthlyData = JSON.parse(localStorage.getItem(monthlyKey) || '{}');
+    if (monthlyData.month === thisMonth) {
+      if (monthlyData.count + estimatedRequestTokens > tokens.maxPerUserPerMonth) {
+        showErrorBanner('Monthly token limit reached. Please try again next month.');
+        return false;
+      }
+    }
+  }
+  
+  return true;
+};
+
+const recordTokenUsage = (tokensUsed: number) => {
+  if (!props.options?.usageLimits?.tokens) return;
+  
+  const today = new Date().toISOString().split('T')[0];
+  const thisMonth = today.substring(0, 7);
+  
+  const dailyKey = 'depthindex_tokens_daily';
+  const dailyData = JSON.parse(localStorage.getItem(dailyKey) || '{}');
+  if (dailyData.date === today) {
+    dailyData.count += tokensUsed;
+  } else {
+    dailyData.date = today;
+    dailyData.count = tokensUsed;
+  }
+  localStorage.setItem(dailyKey, JSON.stringify(dailyData));
+  
+  const monthlyKey = 'depthindex_tokens_monthly';
+  const monthlyData = JSON.parse(localStorage.getItem(monthlyKey) || '{}');
+  if (monthlyData.month === thisMonth) {
+    monthlyData.count += tokensUsed;
+  } else {
+    monthlyData.month = thisMonth;
+    monthlyData.count = tokensUsed;
+  }
+  localStorage.setItem(monthlyKey, JSON.stringify(monthlyData));
+};
+
+const enforceResponseLimits = (content: string, isCloud: boolean): string => {
+  if (!props.options?.usageLimits?.response) return content;
+  
+  const responseLimits = props.options.usageLimits.response;
+  const maxChars = isCloud ? responseLimits.cloudMaxChars : responseLimits.localMaxChars;
+  
+  if (maxChars && content.length > maxChars) {
+    const truncated = content.substring(0, maxChars);
+    const msg = responseLimits.truncationMessage || '\n\n*[Response truncated due to length limits]*';
+    return truncated + msg;
+  }
+  
+  return content;
+};
 
 // Loading indicators
 const loadingStage = ref<'thinking' | 'searching' | 'analyzing' | 'generating'>('thinking');
@@ -449,6 +612,21 @@ watch(() => props.initialQuery, (newVal) => {
 
 // Listen for errors
 onMounted(async () => {
+  // Subscription gating check
+  if (props.options?.usageLimits?.subscription?.enabled) {
+    if (typeof props.options.usageLimits.subscription.checkAccess === 'function') {
+      try {
+        const hasAccess = await props.options.usageLimits.subscription.checkAccess();
+        subscriptionGated.value = !hasAccess;
+      } catch (e) {
+        console.error('[DepthIndex] Subscription access check failed:', e);
+        subscriptionGated.value = true;
+      }
+    } else {
+      subscriptionGated.value = true;
+    }
+  }
+
   errorHandler.onError('*', (err) => {
     currentError.value = err;
     if (err.severity === 'info') {
@@ -656,6 +834,24 @@ async function submitQuery() {
 async function runQuery(currentQuery: string) {
   if (!currentQuery || loading.value) return;
 
+  // Subscription gating check
+  if (subscriptionGated.value) {
+    const gatingMsg = props.options?.usageLimits?.subscription?.upgradeMessage || 'Upgrade to Premium for unlimited AI-powered documentation search.';
+    showErrorBanner(gatingMsg);
+    return;
+  }
+
+  // Rate limit check
+  if (!checkRateLimits()) {
+    return;
+  }
+
+  // Token limit check
+  const estimatedRequestTokens = Math.ceil(currentQuery.length / 4);
+  if (!checkTokenLimits(estimatedRequestTokens)) {
+    return;
+  }
+
   loading.value = true;
 
   // Validate query inputs for security
@@ -856,7 +1052,7 @@ async function generateAssistantResponse(queryToRun: string) {
 
       // Determine response logic (hybrid cloud vs local)
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-      const isCloud = searchMode.value !== 'on-device' && isOnline && apiKey.value;
+      const isCloud = !!(searchMode.value !== 'on-device' && isOnline && apiKey.value);
       
       const synthesizer = new AnswerSynthesizer();
       let synthesizedResponse;
@@ -877,7 +1073,8 @@ async function generateAssistantResponse(queryToRun: string) {
             provider: cloudProvider.value as any,
             apiKey: apiKey.value,
             model: modelName.value || '',
-            messages: []
+            messages: [],
+            personality: props.options?.ai?.personality
           };
           synthesizedResponse = await synthesizer.synthesize(queryToRun, mappedResults, {
             mode: 'cloud',
@@ -898,6 +1095,14 @@ async function generateAssistantResponse(queryToRun: string) {
       }
 
       let finalContent = synthesizedResponse.content;
+
+      // Enforce response length limits
+      finalContent = enforceResponseLimits(finalContent, isCloud);
+
+      // Record token usage
+      const estimatedPromptTokens = Math.ceil((queryToRun.length + (searchResults.map(r => r.chunk.content).join(' ').length)) / 4);
+      const estimatedResponseTokens = Math.ceil(finalContent.length / 4);
+      recordTokenUsage(estimatedPromptTokens + estimatedResponseTokens);
 
       // Generate References footer if there are citations
       if (synthesizedResponse.citations.length > 0) {

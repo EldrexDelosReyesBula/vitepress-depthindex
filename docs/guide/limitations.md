@@ -1,86 +1,53 @@
+---
+title: Limitations & Use Cases
+description: Understand constraints, alternatives comparison, and best fit use cases.
+---
+
 # Limitations & Use Cases
 
-VitePress DepthIndex is a powerful, local-first intelligence layer designed specifically for static documentation. To get the most out of the plugin, it is important to understand its target use cases, deployment scenarios, and performance boundaries.
+## Current Limitations
+While VitePress DepthIndex is a powerful tool, it has several limitations:
+- **Client Storage Quotas**: Browser policies limit the size of local storage and IndexedDB. In low-storage environments, the browser may evict search indexes, requiring a re-download when connection is restored.
+- **Client RAM & CPU Bounds**: On-device vector parsing and keyword matching require client-side CPU processing. On very low-end mobile devices, running searches may cause minor rendering delays.
+- **Template Synthesis Constraints**: On-device answer synthesis uses template-based response formatting rather than generative models. For conversational answers, you must configure hybrid or cloud modes.
+- **Index Payload Overhead**: For very large documentation sites (over 2,000 pages), the index JSON payload can grow to several megabytes, increasing first-visit download sizes.
 
----
-
-## 🎯 Where to Use
-
+## When to Use DepthIndex
 DepthIndex is ideal for:
-1. **Developer Portals & API Reference Sites**: Where developers need to find syntax, usage guides, and configuration options quickly.
-2. **Product Documentation**: Interactive guides for enterprise software, hardware manuals, or SaaS tools.
-3. **Internal Team Wikis**: Knowledge bases built with VitePress that require strict data privacy and local-first execution.
-4. **Offline Documentation**: Docs shipped inside desktop apps, electron shells, or offline-capable PWAs.
+- Sites that demand high privacy compliance (such as internal corporate developer wikis or medical product documentations).
+- Applications that require full offline support (such as field engineer references, airplane manuals, or maritime guides).
+- Open-source projects looking to provide modern AI-native search capabilities without incurring recurring vendor costs.
+- Small to medium-sized documentation sites (typically under 1,000 pages).
 
----
+## When Not to Use
+Avoid using DepthIndex if:
+- Your documentation has tens of thousands of pages (in which case the local index payload is too large to download).
+- You require deep, multi-source external search integrations (e.g. searching across GitHub, Jira, and Slack in a single interface).
+- You want to completely block users from using cloud API models or entering custom keys.
 
-## 📅 When to Use
+## Comparison with Alternatives
 
-Choose DepthIndex when:
-* **Privacy is Paramount**: You want search queries and synthesized answers to remain entirely client-side without sending documentation content to third-party databases.
-* **Cost Efficiency is Required**: You want to avoid paying recurring monthly fees for cloud vector databases (e.g. Pinecone, pgvector) or cloud search APIs.
-* **Offline Capability is Essential**: Your users need access to search and AI assistant features even in low-connectivity or air-gapped environments.
-* **Hybrid Execution is Preferred**: You want to offer fast on-device processing by default, with the option to leverage cloud LLMs (Gemini, OpenAI, Anthropic) if the user provides their own API key.
+### vs Algolia
+- **Cost**: Algolia requires subscription plans for enterprise sites, while DepthIndex is open-source and free to self-host.
+- **Offline Support**: Algolia requires an active internet connection to run searches, while DepthIndex works completely offline.
+- **AI Answers**: Algolia provides keyword matching only, while DepthIndex includes a conversational assistant.
 
----
+### vs Inkeep
+- Inkeep is a cloud-based enterprise solution. DepthIndex is lightweight, client-focused, and keeps all configuration variables local.
 
-## 🛠️ How to Use: Core Integration Flow
+### vs Mendable
+- Mendable routes all requests through cloud databases. DepthIndex includes a local Privacy Firewall to sanitize data on the user's device.
 
-Integrating DepthIndex involves three simple steps:
+### vs Custom Solutions
+- Building a custom RAG (Retrieval-Augmented Generation) pipeline requires setting up vector databases, API gateways, and client UI components. DepthIndex provides all of this out-of-the-box with a single Vite plugin.
 
-### 1. Register the Plugin
-In `docs/.vitepress/config.ts`:
-```typescript
-import { defineConfig } from 'vitepress';
-import DepthIndex from 'vitepress-plugin-depthindex';
+## Roadmap
+Planned features for upcoming releases:
+- Support for dense neural embeddings on-device using WebGPU.
+- Shared indexing pipelines for multiple subdomains.
+- Extended integrations with Docusaurus and MkDocs portals.
 
-export default defineConfig({
-  vite: {
-    plugins: [
-      DepthIndex({
-        searchMode: 'on-device', // or 'hybrid'
-        seo: {
-          siteName: 'Your Docs Site',
-        }
-      })
-    ]
-  }
-});
-```
-
-### 2. Inject the Component
-In your theme file `docs/.vitepress/theme/index.ts`:
-```typescript
-import DefaultTheme from 'vitepress/theme';
-import DepthIndexPanel from 'vitepress-plugin-depthindex/client';
-
-export default {
-  extends: DefaultTheme,
-  enhanceApp({ app }) {
-    // Register the component
-    app.component('DepthIndexPanel', DepthIndexPanel);
-  }
-};
-```
-
-### 3. Add to Layout
-You can include it inside your custom Layout wrapper, or let it load automatically through the built-in slot injections.
-
----
-
-## ⚠️ Limitations of the Plugin
-
-While DepthIndex is highly optimized, on-device execution comes with natural technical boundaries:
-
-| Limitation Area | Description | Boundary / Mitigation |
-|-----------------|-------------|-----------------------|
-| **Site Scale** | Massive documentation sites will result in larger index files. | Recommended for sites under **2,000 pages**. Beyond this, the initial index download size (~5MB compressed) may impact mobile load times. |
-| **Local Synthesis** | Local on-device answer synthesis is rule-based and syntactic. | Local mode cannot answer complex logical reasoning queries that are not directly stated in the text. *Mitigation:* Use hybrid mode with cloud LLM adapters. |
-| **Browser Storage** | IndexedDB is used to save sessions and user topic affinities. | Private tabs or browser storage-clear operations will wipe message history. Storage is subject to browser-controlled quota limits (typically 50MB+). |
-| **Worker Overheads** | Web workers require COOP/COEP headers to use SharedArrayBuffer in high-concurrency mode. | If these headers are blocked by the hosting provider, DepthIndex falls back to main-thread search automatically. |
-
-> [!IMPORTANT]
-> **Data Sanitization**: DepthIndex includes client-side PII filters that sanitize API keys, JWTs, and email addresses from queries. However, do not paste extremely sensitive personal information into search fields as an industry-standard best practice.
-
-> [!TIP]
-> **Index Optimization**: Use the `exclude` option in the plugin configuration to skip index generation for archive pages, changelogs, or large tabular pages that don't benefit from semantic search.
+## Feature Requests
+If you want to suggest features or report bugs:
+1. Search active requests in the [GitHub Issues](https://github.com/EldrexDelosReyesBula/vitepress-depthindex/issues).
+2. If the request does not exist, open a new issue describing your feature goals.

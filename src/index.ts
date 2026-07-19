@@ -236,6 +236,14 @@ export default function DepthIndexPlugin(
             return;
           }
         }
+        if (req.url === '/depthindex-tokens.css') {
+          const cssPath = path.resolve(__dirname, './styles/tokens.css');
+          if (fs.existsSync(cssPath)) {
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            res.end(fs.readFileSync(cssPath, 'utf-8'));
+            return;
+          }
+        }
         if (req.url?.endsWith('.worker.js') || req.url?.includes('search-worker') || req.url?.includes('depthindex-search-worker')) {
           res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
           res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -404,6 +412,16 @@ export default function DepthIndexPlugin(
         }
       }
 
+      // Inject CSS Tokens
+      if (!processed.includes('/depthindex-tokens.css')) {
+        const tokensLink = `<link rel="stylesheet" href="/depthindex-tokens.css">`;
+        if (processed.includes('</head>')) {
+          processed = processed.replace('</head>', `${tokensLink}\n</head>`);
+        } else {
+          processed = `<head>${tokensLink}</head>` + processed;
+        }
+      }
+
       // Inject Search Bar CSS
       if (!processed.includes('/depthindex-search-bar.css')) {
         const cssLink = `<link rel="stylesheet" href="/depthindex-search-bar.css">`;
@@ -441,23 +459,51 @@ export default function DepthIndexPlugin(
       if (!isBuild) return;
 
       try {
-        console.log('[depthindex] Generating documentation index...');
-        const indexData = await buildIndex(pages, configOptions, srcDir);
-        const compressed = serializeAndCompressIndex(indexData);
+        if (configOptions.searchMode === 'cloud') {
+          console.log('[depthindex] Cloud-only mode: skipping index, generating llms.txt');
+          const { extractAllPages } = await import('./build/extractor.js');
+          const extracted = await extractAllPages(pages, srcDir);
+          
+          const { CloudOnlyStrategy } = await import('./build/cloud-only-strategy.js');
+          const strategy = new CloudOnlyStrategy();
+          const buildOutput = await strategy.buildForCloud(extracted, configOptions);
 
-        this.emitFile({
-          type: 'asset',
-          fileName: 'assets/depth-index.json',
-          source: compressed,
-        });
-        console.log('[depthindex] Index written successfully to assets/depth-index.json');
+          this.emitFile({
+            type: 'asset',
+            fileName: 'llms.txt',
+            source: buildOutput['llms.txt'],
+          });
+
+          this.emitFile({
+            type: 'asset',
+            fileName: 'llms.jsonl',
+            source: buildOutput['llms.jsonl'],
+          });
+
+          this.emitFile({
+            type: 'asset',
+            fileName: 'page-manifest.json',
+            source: buildOutput['page-manifest.json'],
+          });
+        } else {
+          console.log('[depthindex] Generating documentation index...');
+          const indexData = await buildIndex(pages, configOptions, srcDir);
+          const compressed = serializeAndCompressIndex(indexData);
+
+          this.emitFile({
+            type: 'asset',
+            fileName: 'assets/depth-index.json',
+            source: compressed,
+          });
+          console.log('[depthindex] Index written successfully to assets/depth-index.json');
+        }
 
         if (configOptions.offline.enabled) {
           const swContent = `
             const CACHE_NAME = 'depthindex-cache-v1';
             const ASSETS_TO_CACHE = [
               '/',
-              '/assets/depth-index.json'
+              ${configOptions.searchMode === 'cloud' ? "'/page-manifest.json'" : "'/assets/depth-index.json'"}
             ];
 
             self.addEventListener('install', event => {
@@ -571,6 +617,20 @@ export default function DepthIndexPlugin(
           } else {
             console.warn('[depthindex] search-bar.css not found at:', cssPath);
           }
+
+          // Emit tokens.css as depthindex-tokens.css
+          const tokensPath = path.resolve(__dirname, './styles/tokens.css');
+          if (fs.existsSync(tokensPath)) {
+            const tokensSource = fs.readFileSync(tokensPath, 'utf-8');
+            this.emitFile({
+              type: 'asset',
+              fileName: 'depthindex-tokens.css',
+              source: tokensSource,
+            });
+            console.log('[depthindex] Tokens stylesheet emitted successfully.');
+          } else {
+            console.warn('[depthindex] tokens.css not found at:', tokensPath);
+          }
         }
 
         // SEO Generation
@@ -640,7 +700,7 @@ export default function DepthIndexPlugin(
         const extracted = await extractAllPages(pages, srcDir);
 
         // 3. Generate LLM files
-        if (configOptions.llmText.enabled) {
+        if (configOptions.llmText.enabled && configOptions.searchMode !== 'cloud') {
           console.log('[depthindex] Generating LLMs.txt files...');
           await generateLLMText(extracted, configOptions, outDir);
           console.log('[depthindex] LLMs.txt files generated in outDir');
@@ -771,3 +831,6 @@ function crawlMarkdownFiles(dir: string, baseDir: string = dir): string[] {
   });
   return results;
 }
+
+export { PrivacyFirewall } from './privacy/firewall.js';
+export { TranslationEngine } from './i18n/engine.js';

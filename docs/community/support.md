@@ -1,33 +1,28 @@
-# Support & Donations
-
-**VitePress DepthIndex** is a free and open-source project created and maintained by **Eldrex Delos Reyes Bula**. 
-
-If you find this plugin helpful for your projects, documentation, or organization, please consider supporting the project to help fund further development, maintenance, and hosting costs.
-
+---
+title: Support & Donate
+description: Support the development of VitePress DepthIndex and get technical help.
 ---
 
-## 1. Monetary Support: PayPal
+# Support & Donate
 
-You can support the author directly by donating via PayPal:
+## Getting Help
+If you encounter problems or have questions while setting up VitePress DepthIndex:
+- Read our [FAQ & Troubleshooting Guide](/guide/faq).
+- Check the [Configuration Reference](/guide/configuration).
+- Search or open issues in our GitHub repository.
 
-* **PayPal Support Link**: [paypal.com/paypalme/eldrexbula](https://www.paypal.com/paypalme/eldrexbula)
+## GitHub Issues
+For technical questions, bug reports, or feature requests, please use our GitHub Issues page:
+- **Repository URL**: [EldrexDelosReyesBula/vitepress-depthindex/issues](https://github.com/EldrexDelosReyesBula/vitepress-depthindex/issues)
+- Provide a clear description, reproduction steps, and configuration snippets to help us resolve the issue quickly.
 
-Every donation helps ensure that the project remains actively maintained, secure, and compatible with future VitePress and Vue releases.
+## Community
+Join the discussion on GitHub to share your custom extensions, custom styles, or ask for design feedback.
 
----
+## PayPal
+If VitePress DepthIndex has helped your project or saved you API costs, please consider supporting the creator:
+- **PayPal Donation Link**: [paypal.me/eldrexbula](https://www.paypal.com/paypalme/eldrexbula)
 
-## 2. Professional & General Inquiries
-
-For professional consultations, feature commissions, custom integrations, or general help, you can contact the author:
-
-* **Author**: Eldrex Delos Reyes Bula
-* **Email**: eldrexdelosreyesbula@gmail.com
-
----
-
-## 3. Raising Issues & Feature Requests
-
-If you encounter technical issues, please raise them on our official GitHub Issues board:
-* **GitHub Issues**: [github.com/EldrexDelosReyesBula/vitepress-depthindex/issues](https://github.com/EldrexDelosReyesBula/vitepress-depthindex/issues)
-
-For security vulnerabilities, please refer to our [Security Policy](/legal/security) and contact us directly via email instead of opening a public issue.
+## Sponsorship
+For corporate sponsorships, custom feature developments, or premium integrations:
+- Contact the creator via email: `eldrexdelosreyesbula@gmail.com`.

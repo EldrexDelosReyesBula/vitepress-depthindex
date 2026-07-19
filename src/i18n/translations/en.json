@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "code": "en",
+    "nativeName": "English",
+    "englishName": "English",
+    "direction": "ltr",
+    "contributors": ["DepthIndex Core"],
+    "lastUpdated": "2026-07-16",
+    "completion": 100
+  },
+  
+  "panel": {
+    "title": "Documentation Assistant",
+    "subtitle": "Ask me anything about these docs",
+    "placeholder": "Ask a question...",
+    "send": "Send",
+    "close": "Close",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "newChat": "New Chat",
+    "settings": "Settings",
+    "history": "History",
+    "poweredBy": "Powered by DepthIndex"
+  },
+  
+  "searchBar": {
+    "placeholder": "Ask AI or search docs...",
+    "aiAnswer": "AI Answer",
+    "openPanel": "Open in Chat",
+    "noResults": "No results found",
+    "searching": "Searching..."
+  },
+  
+  "context": {
+    "detected": "I understand this is about",
+    "viewing": "Viewing",
+    "summarize": "Summarize",
+    "discuss": "Discuss"
+  },
+  
+  "suggestions": {
+    "getStarted": "How do I get started?",
+    "features": "What are the main features?",
+    "configure": "How do I configure this?",
+    "examples": "Show me examples",
+    "summarize": "Summarize this page"
+  },
+  
+  "search": {
+    "thinking": "Thinking...",
+    "searching": "Searching documentation...",
+    "analyzing": "Analyzing results...",
+    "generating": "Generating response...",
+    "found": "Found {count} relevant sections",
+    "noResults": "I couldn't find information about \"{query}\" in the documentation.",
+    "tryAgain": "Try rephrasing your question"
+  },
+  
+  "answer": {
+    "confidence": "Confidence: {percent}%",
+    "references": "References",
+    "relatedTopics": "Related Topics",
+    "sourceLocal": "On-Device",
+    "sourceCloud": "Cloud AI",
+    "sourceHybrid": "Hybrid",
+    "error": "An error occurred. Please try again.",
+    "limitedInfo": "The documentation has limited information on this topic.",
+    "basedOnDocs": "Based on the documentation:",
+    "heresWhat": "Here's what I found:"
+  },
+  
+  "citations": {
+    "viewSource": "View source",
+    "backToText": "Back to text"
+  },
+  
+  "actions": {
+    "copy": "Copy",
+    "copied": "Copied!",
+    "edit": "Edit",
+    "resend": "Resend",
+    "delete": "Delete",
+    "helpful": "Helpful",
+    "notHelpful": "Not helpful",
+    "report": "Report",
+    "dismiss": "Dismiss"
+  },
+  
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languageDescription": "Choose your preferred language for the interface and answers",
+    "searchMode": "Search Mode",
+    "searchModeDescription": "Choose how answers are generated",
+    "modes": {
+      "local": "On-Device",
+      "localDescription": "Fast, private, works offline",
+      "hybrid": "Hybrid",
+      "hybridDescription": "Local search + Cloud AI enhancement",
+      "cloud": "Cloud AI",
+      "cloudDescription": "Best answers, requires internet"
+    },
+    "cloudConfig": "Cloud AI Configuration",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "Enter your API key...",
+    "model": "Model",
+    "testConnection": "Test Connection",
+    "saveConfiguration": "Save Configuration",
+    "resetDefaults": "Reset to Defaults",
+    "clearHistory": "Clear History",
+    "clearHistoryConfirm": "Are you sure you want to clear all chat history?"
+  },
+  
+  "errors": {
+    "indexLoad": "Failed to load search index. Try refreshing the page.",
+    "searchFailed": "Search failed. Please try again.",
+    "cloudFailed": "Cloud AI unavailable. Using local search instead.",
+    "offlineCloud": "You're offline. Switching to local search.",
+    "rateLimited": "Too many requests. Please wait a moment.",
+    "invalidKey": "Invalid API key format. Please check your key.",
+    "confirmReport": "Do you want to report this error and open the issue submission page?"
+  },
+  
+  "compliance": {
+    "noTracking": "No Tracking",
+    "noPII": "No PII Collected",
+    "localFirst": "Local-First",
+    "privacyNotice": "Privacy Notice",
+    "learnMore": "Learn More"
+  }
+}
