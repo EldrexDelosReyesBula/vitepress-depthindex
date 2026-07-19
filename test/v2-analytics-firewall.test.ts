@@ -3,7 +3,7 @@ import { PrivacyFirewall } from '../src/privacy/firewall.js';
 import { CloudOnlyStrategy } from '../src/build/cloud-only-strategy.js';
 import { ExtractedPage, DepthIndexOptions } from '../src/types/index.js';
 
-describe('DepthIndex v1.1.6 Analytics & Privacy Firewall', () => {
+describe('DepthIndex v1.1.7 Analytics & Privacy Firewall', () => {
 
   describe('PrivacyFirewall', () => {
     it('should validate payloads and detect violations', () => {

@@ -1,4 +1,4 @@
 allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
-  - vitepress-plugin-depthindex@1.1.6
+  - vitepress-plugin-depthindex@1.1.6 || 1.1.7

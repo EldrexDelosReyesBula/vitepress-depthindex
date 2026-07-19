@@ -367,7 +367,8 @@ export default function DepthIndexPlugin(
           import FloatingButton from 'vitepress-plugin-depthindex/components/FloatingButton.vue';
 
           if (typeof window !== 'undefined') {
-            window.addEventListener('DOMContentLoaded', () => {
+            const init = () => {
+              if (document.getElementById('depthindex-container')) return;
               const container = document.createElement('div');
               container.id = 'depthindex-container';
               document.body.appendChild(container);
@@ -380,7 +381,13 @@ export default function DepthIndexPlugin(
                 }
               });
               app.mount('#depthindex-container');
-            });
+            };
+
+            if (document.readyState === 'loading') {
+              window.addEventListener('DOMContentLoaded', init);
+            } else {
+              init();
+            }
           }
         `;
       }
