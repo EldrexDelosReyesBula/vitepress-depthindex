@@ -5,19 +5,55 @@ import { serializeAndCompressIndex } from './build/indexer.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 import { DepthIndexOptions } from './types/index.js';
 import { ComplianceEnforcer } from './sdk/compliance.js';
 
-// Resolve the absolute path to FloatingButton.vue from this plugin's own location.
-// This works whether the plugin is used as a local file or installed from npm.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// In the built ESM dist, __dirname is dist/. FloatingButton.vue is at src/components/ (dev)
-// or needs to be resolved relative to the installed package root.
-const FLOATING_BUTTON_VUE_PATH = path.resolve(__dirname, '..', 'src', 'components', 'FloatingButton.vue');
+
+function resolveAssetPath(subPath: string): string {
+  const normalizedSubPath = subPath.replace(/\\/g, '/');
+  
+  // Candidate 1: relative to process.cwd() (the user's project root)
+  const localPaths = [
+    path.resolve(process.cwd(), normalizedSubPath),
+    path.resolve(process.cwd(), 'dist', normalizedSubPath.replace(/^(src|dist)\//, '')),
+    path.resolve(process.cwd(), 'src', normalizedSubPath.replace(/^(src|dist)\//, '')),
+  ];
+  for (const p of localPaths) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  // Candidate 2: resolve using Node module resolution
+  try {
+    const req = createRequire(import.meta.url);
+    const pkgJson = req.resolve('vitepress-plugin-depthindex/package.json');
+    const pkgDir = path.dirname(pkgJson);
+    const candidatePath = path.resolve(pkgDir, normalizedSubPath.replace(/^(src|dist)\//, ''));
+    if (fs.existsSync(candidatePath)) return candidatePath;
+  } catch {}
+
+  // Candidate 3: fallback to compiler-resolved __dirname
+  const fallbackPaths = [
+    path.resolve(__dirname, normalizedSubPath),
+    path.resolve(__dirname, '..', normalizedSubPath),
+    path.resolve(__dirname, '../dist', normalizedSubPath.replace(/^(src|dist)\//, '')),
+    path.resolve(__dirname, '../src', normalizedSubPath.replace(/^(src|dist)\//, '')),
+  ];
+  for (const p of fallbackPaths) {
+    if (fs.existsSync(p)) return p;
+  }
+
+  return path.resolve(__dirname, normalizedSubPath);
+}
+
+const FLOATING_BUTTON_VUE_PATH = resolveAssetPath('src/components/FloatingButton.vue');
 const FLOATING_BUTTON_VIRTUAL_ID = '\0vitepress-plugin-depthindex/components/FloatingButton.vue';
 const TOKENS_CSS_VIRTUAL_ID = '\0vitepress-plugin-depthindex/dist/styles/tokens.css';
 const SEARCH_BAR_CSS_VIRTUAL_ID = '\0vitepress-plugin-depthindex/dist/styles/search-bar.css';
+const virtualModuleId = 'virtual:depthindex-client';
+const resolvedVirtualModuleId = '\0' + virtualModuleId;
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
   searchMode: 'on-device',
@@ -349,12 +385,9 @@ export default function DepthIndexPlugin(
       }
     },
 
-    async resolveId(id: string, importer: string | undefined) {
-      if (id === '@theme/index') {
-        const resolved = await this.resolve(id, importer, { skipSelf: true });
-        if (resolved) {
-          return `\0depthindex-theme:${resolved.id}`;
-        }
+    resolveId(id: string) {
+      if (id === '/@depthindex/client.js' || id === virtualModuleId) {
+        return resolvedVirtualModuleId;
       }
       if (id === 'vitepress-plugin-depthindex/components/FloatingButton.vue') {
         return FLOATING_BUTTON_VIRTUAL_ID;
@@ -368,26 +401,36 @@ export default function DepthIndexPlugin(
     },
 
     load(id: string) {
-      if (id.startsWith('\0depthindex-theme:')) {
-        const originalId = id.substring('\0depthindex-theme:'.length);
+      if (id === resolvedVirtualModuleId) {
         return `
-          import { h } from 'vue';
+          import { createApp, h } from 'vue';
           import FloatingButton from 'vitepress-plugin-depthindex/components/FloatingButton.vue';
           import 'vitepress-plugin-depthindex/dist/styles/tokens.css';
           import 'vitepress-plugin-depthindex/dist/styles/search-bar.css';
-          import OriginalTheme from ${JSON.stringify(originalId)};
 
-          const theme = {
-            ...OriginalTheme,
-            Layout() {
-              const originalLayout = OriginalTheme.Layout || (OriginalTheme.default && OriginalTheme.default.Layout);
-              return h(originalLayout, null, {
-                'layout-bottom': () => h(FloatingButton, { options: __DEPTHINDEX_OPTIONS__ })
+          if (typeof window !== 'undefined') {
+            const init = () => {
+              if (document.getElementById('depthindex-container')) return;
+              const container = document.createElement('div');
+              container.id = 'depthindex-container';
+              document.body.appendChild(container);
+
+              const app = createApp({
+                render() {
+                  return h(FloatingButton, {
+                    options: __DEPTHINDEX_OPTIONS__
+                  });
+                }
               });
+              app.mount('#depthindex-container');
+            };
+
+            if (document.readyState === 'loading') {
+              window.addEventListener('DOMContentLoaded', init);
+            } else {
+              init();
             }
-          };
-          export default theme;
-          export * from ${JSON.stringify(originalId)};
+          }
         `;
       }
       // Serve FloatingButton.vue source from the plugin's own location
@@ -395,8 +438,7 @@ export default function DepthIndexPlugin(
         try {
           return fs.readFileSync(FLOATING_BUTTON_VUE_PATH, 'utf-8');
         } catch {
-          // Fallback: look relative to the installed npm package (dist/../src/components/)
-          const fallback = path.resolve(__dirname, 'components', 'FloatingButton.vue');
+          const fallback = resolveAssetPath('src/components/FloatingButton.vue');
           if (fs.existsSync(fallback)) {
             return fs.readFileSync(fallback, 'utf-8');
           }
@@ -406,28 +448,46 @@ export default function DepthIndexPlugin(
       // Serve CSS stylesheets
       if (id === TOKENS_CSS_VIRTUAL_ID) {
         try {
-          const devPath = path.resolve(__dirname, '..', 'src', 'styles', 'tokens.css');
-          if (fs.existsSync(devPath)) return fs.readFileSync(devPath, 'utf-8');
-          const npmPath = path.resolve(__dirname, 'styles', 'tokens.css');
-          return fs.readFileSync(npmPath, 'utf-8');
+          const cssPath = resolveAssetPath('src/styles/tokens.css');
+          return fs.readFileSync(cssPath, 'utf-8');
         } catch {
           console.warn('[depthindex] tokens.css not found');
         }
       }
       if (id === SEARCH_BAR_CSS_VIRTUAL_ID) {
         try {
-          const devPath = path.resolve(__dirname, '..', 'src', 'styles', 'search-bar.css');
-          if (fs.existsSync(devPath)) return fs.readFileSync(devPath, 'utf-8');
-          const npmPath = path.resolve(__dirname, 'styles', 'search-bar.css');
-          return fs.readFileSync(npmPath, 'utf-8');
+          const cssPath = resolveAssetPath('src/styles/search-bar.css');
+          return fs.readFileSync(cssPath, 'utf-8');
         } catch {
           console.warn('[depthindex] search-bar.css not found');
         }
       }
     },
 
+    transform(code: string, id: string) {
+      const normalizedId = id.replace(/\\/g, '/');
+      if (normalizedId.endsWith('.vitepress/theme/index.ts') || 
+          normalizedId.endsWith('.vitepress/theme/index.js') || 
+          normalizedId.includes('vitepress/dist/client/theme-default/index.js')) {
+        return {
+          code: code + `\nimport 'virtual:depthindex-client';\n`,
+          map: null
+        };
+      }
+    },
+
     transformIndexHtml(html: string) {
       let processed = html;
+      
+      // Inject Client script in dev mode
+      if (!processed.includes('/@depthindex/client.js')) {
+        const scriptTag = `<script type="module" src="/@depthindex/client.js"></script>`;
+        if (processed.includes('</body>')) {
+          processed = processed.replace('</body>', `${scriptTag}\n</body>`);
+        } else {
+          processed = processed + scriptTag;
+        }
+      }
       
       // Inject KaTeX CSS
       if (!processed.includes('katex@0.16.9/dist/katex.min.css')) {
@@ -495,6 +555,70 @@ export default function DepthIndexPlugin(
           console.log('[depthindex] Index written successfully to assets/depth-index.json');
         }
 
+
+
+        // SEO Generation
+        if (configOptions.seo) {
+          console.log('[depthindex] Generating SEO artifacts...');
+          const { SEOOptimizer } = await import('./build/seo-optimizer.js');
+          
+          let siteUrl = configOptions.seo.siteUrl;
+          if (!siteUrl) {
+            if (process.env.VERCEL_URL) {
+              siteUrl = `https://${process.env.VERCEL_URL}`;
+            } else if (process.env.NETLIFY_URL) {
+              siteUrl = process.env.NETLIFY_URL;
+            } else {
+              siteUrl = 'https://depthindex.vercel.app';
+            }
+          }
+
+          const seoOptimizer = new SEOOptimizer({
+            ...configOptions.seo,
+            siteUrl,
+          });
+
+          const { extractAllPages } = await import('./build/extractor.js');
+          const extracted = await extractAllPages(pages, srcDir);
+          
+          seoOutput = await seoOptimizer.optimize(extracted, outDir);
+
+          // Emit SEO files
+          for (const [filename, content] of Object.entries(seoOutput.files)) {
+            this.emitFile({
+              type: 'asset',
+              fileName: filename,
+              source: content as string,
+            });
+          }
+
+          // Emit submission hints
+          this.emitFile({
+            type: 'asset',
+            fileName: 'assets/seo-submission-hints.html',
+            source: seoOutput.submissionHints as string,
+          });
+
+          console.log('[depthindex] SEO optimization complete!');
+          console.log(`  • sitemap.xml — ${extracted.length} URLs indexed`);
+          console.log(`  • robots.txt — AI crawlers: ${configOptions.seo.aiCrawlerPolicy || 'allow'}`);
+          console.log(`  • llms.txt — Full text for AI training`);
+          console.log(`  • .well-known/ai.json — AI discoverability endpoint`);
+        }
+      } catch (err) {
+        console.error('[depthindex] Failed to generate search index:', err);
+      }
+    },
+
+    async closeBundle() {
+      if (!isBuild) return;
+
+      try {
+        // 1. Inject KaTeX and FontAwesome CSS links into all statically built html files
+        console.log('[depthindex] Injecting CDN styles into HTML pages...');
+        injectCDNLinksIntoHtmlFiles(outDir);
+
+        // 2. Write Service Worker
         if (configOptions.offline.enabled) {
           const swContent = `
             const CACHE_NAME = 'depthindex-cache-v1';
@@ -580,122 +704,36 @@ export default function DepthIndexPlugin(
               );
             });
           `;
-          this.emitFile({
-            type: 'asset',
-            fileName: 'depthindex-sw.js',
-            source: swContent,
-          });
+          fs.writeFileSync(path.resolve(outDir, 'depthindex-sw.js'), swContent, 'utf-8');
           console.log('[depthindex] Service worker emitted successfully.');
-
-          // Emit search-worker.js as depthindex-search-worker.js
-          const workerPath = path.resolve(__dirname, './client/search-worker.js');
-          if (fs.existsSync(workerPath)) {
-            const workerSource = fs.readFileSync(workerPath, 'utf-8');
-            this.emitFile({
-              type: 'asset',
-              fileName: 'depthindex-search-worker.js',
-              source: workerSource,
-            });
-            console.log('[depthindex] Search worker emitted successfully.');
-          } else {
-            console.warn('[depthindex] search-worker.js not found at:', workerPath);
-          }
-
-          // Emit search-bar.css as depthindex-search-bar.css
-          const cssPath = path.resolve(__dirname, './styles/search-bar.css');
-          if (fs.existsSync(cssPath)) {
-            const cssSource = fs.readFileSync(cssPath, 'utf-8');
-            this.emitFile({
-              type: 'asset',
-              fileName: 'depthindex-search-bar.css',
-              source: cssSource,
-            });
-            console.log('[depthindex] Search bar stylesheet emitted successfully.');
-          } else {
-            console.warn('[depthindex] search-bar.css not found at:', cssPath);
-          }
-
-          // Emit tokens.css as depthindex-tokens.css
-          const tokensPath = path.resolve(__dirname, './styles/tokens.css');
-          if (fs.existsSync(tokensPath)) {
-            const tokensSource = fs.readFileSync(tokensPath, 'utf-8');
-            this.emitFile({
-              type: 'asset',
-              fileName: 'depthindex-tokens.css',
-              source: tokensSource,
-            });
-            console.log('[depthindex] Tokens stylesheet emitted successfully.');
-          } else {
-            console.warn('[depthindex] tokens.css not found at:', tokensPath);
-          }
         }
 
-        // SEO Generation
-        if (configOptions.seo) {
-          console.log('[depthindex] Generating SEO artifacts...');
-          const { SEOOptimizer } = await import('./build/seo-optimizer.js');
-          
-          let siteUrl = configOptions.seo.siteUrl;
-          if (!siteUrl) {
-            if (process.env.VERCEL_URL) {
-              siteUrl = `https://${process.env.VERCEL_URL}`;
-            } else if (process.env.NETLIFY_URL) {
-              siteUrl = process.env.NETLIFY_URL;
-            } else {
-              siteUrl = 'https://depthindex.vercel.app';
-            }
-          }
-
-          const seoOptimizer = new SEOOptimizer({
-            ...configOptions.seo,
-            siteUrl,
-          });
-
-          const { extractAllPages } = await import('./build/extractor.js');
-          const extracted = await extractAllPages(pages, srcDir);
-          
-          seoOutput = await seoOptimizer.optimize(extracted, outDir);
-
-          // Emit SEO files
-          for (const [filename, content] of Object.entries(seoOutput.files)) {
-            this.emitFile({
-              type: 'asset',
-              fileName: filename,
-              source: content as string,
-            });
-          }
-
-          // Emit submission hints
-          this.emitFile({
-            type: 'asset',
-            fileName: 'assets/seo-submission-hints.html',
-            source: seoOutput.submissionHints as string,
-          });
-
-          console.log('[depthindex] SEO optimization complete!');
-          console.log(`  • sitemap.xml — ${extracted.length} URLs indexed`);
-          console.log(`  • robots.txt — AI crawlers: ${configOptions.seo.aiCrawlerPolicy || 'allow'}`);
-          console.log(`  • llms.txt — Full text for AI training`);
-          console.log(`  • .well-known/ai.json — AI discoverability endpoint`);
+        // 3. Write search-worker.js
+        const workerPath = resolveAssetPath('dist/client/search-worker.js');
+        if (fs.existsSync(workerPath)) {
+          fs.writeFileSync(path.resolve(outDir, 'depthindex-search-worker.js'), fs.readFileSync(workerPath, 'utf-8'), 'utf-8');
+          console.log('[depthindex] Search worker emitted successfully.');
         }
-      } catch (err) {
-        console.error('[depthindex] Failed to generate search index:', err);
-      }
-    },
 
-    async closeBundle() {
-      if (!isBuild) return;
+        // 4. Write search-bar.css
+        const cssPath = resolveAssetPath('src/styles/search-bar.css');
+        if (fs.existsSync(cssPath)) {
+          fs.writeFileSync(path.resolve(outDir, 'depthindex-search-bar.css'), fs.readFileSync(cssPath, 'utf-8'), 'utf-8');
+          console.log('[depthindex] Search bar stylesheet emitted successfully.');
+        }
 
-      try {
-        // 1. Inject KaTeX and FontAwesome CSS links into all statically built html files
-        console.log('[depthindex] Injecting CDN styles into HTML pages...');
-        injectCDNLinksIntoHtmlFiles(outDir);
+        // 5. Write tokens.css
+        const tokensPath = resolveAssetPath('src/styles/tokens.css');
+        if (fs.existsSync(tokensPath)) {
+          fs.writeFileSync(path.resolve(outDir, 'depthindex-tokens.css'), fs.readFileSync(tokensPath, 'utf-8'), 'utf-8');
+          console.log('[depthindex] Tokens stylesheet emitted successfully.');
+        }
 
-        // 2. Extract pages content
+        // 6. Extract pages content
         const { extractAllPages } = await import('./build/extractor.js');
         const extracted = await extractAllPages(pages, srcDir);
 
-        // 3. Generate LLM files
+        // 7. Generate LLM files
         if (configOptions.llmText.enabled && configOptions.searchMode !== 'cloud') {
           console.log('[depthindex] Generating LLMs.txt files...');
           await generateLLMText(extracted, configOptions, outDir);

@@ -329,7 +329,7 @@ export class PluginRegistry {
   private createPluginContext(manifest: PluginManifest): PluginContext {
     return {
       manifest,
-      depthIndexVersion: '1.1.10',
+      depthIndexVersion: '1.1.11',
       siteContext: this.siteContextEngine.detectSiteProfile(),
       storage: this.createSandboxedStorage(manifest.id),
       logger: this.createPluginLogger(manifest.id),
