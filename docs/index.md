@@ -31,6 +31,7 @@ features:
     details: Zero analytics or external logging. Personalization data and optional API keys are kept strictly in local storage.
 ---
 
+
 # VitePress DepthIndex
 
 > On-device intelligence layer for VitePress documentation.

@@ -16,6 +16,8 @@ const __dirname = path.dirname(__filename);
 // or needs to be resolved relative to the installed package root.
 const FLOATING_BUTTON_VUE_PATH = path.resolve(__dirname, '..', 'src', 'components', 'FloatingButton.vue');
 const FLOATING_BUTTON_VIRTUAL_ID = '\0vitepress-plugin-depthindex/components/FloatingButton.vue';
+const TOKENS_CSS_VIRTUAL_ID = '\0vitepress-plugin-depthindex/dist/styles/tokens.css';
+const SEARCH_BAR_CSS_VIRTUAL_ID = '\0vitepress-plugin-depthindex/dist/styles/search-bar.css';
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
   searchMode: 'on-device',
@@ -357,6 +359,12 @@ export default function DepthIndexPlugin(
       if (id === 'vitepress-plugin-depthindex/components/FloatingButton.vue') {
         return FLOATING_BUTTON_VIRTUAL_ID;
       }
+      if (id === 'vitepress-plugin-depthindex/dist/styles/tokens.css') {
+        return TOKENS_CSS_VIRTUAL_ID;
+      }
+      if (id === 'vitepress-plugin-depthindex/dist/styles/search-bar.css') {
+        return SEARCH_BAR_CSS_VIRTUAL_ID;
+      }
     },
 
     load(id: string) {
@@ -365,6 +373,8 @@ export default function DepthIndexPlugin(
         return `
           import { createApp, h } from 'vue';
           import FloatingButton from 'vitepress-plugin-depthindex/components/FloatingButton.vue';
+          import 'vitepress-plugin-depthindex/dist/styles/tokens.css';
+          import 'vitepress-plugin-depthindex/dist/styles/search-bar.css';
 
           if (typeof window !== 'undefined') {
             const init = () => {
@@ -404,40 +414,41 @@ export default function DepthIndexPlugin(
           console.warn('[depthindex] FloatingButton.vue not found at:', FLOATING_BUTTON_VUE_PATH);
         }
       }
+      // Serve CSS stylesheets
+      if (id === TOKENS_CSS_VIRTUAL_ID) {
+        try {
+          const devPath = path.resolve(__dirname, '..', 'src', 'styles', 'tokens.css');
+          if (fs.existsSync(devPath)) return fs.readFileSync(devPath, 'utf-8');
+          const npmPath = path.resolve(__dirname, 'styles', 'tokens.css');
+          return fs.readFileSync(npmPath, 'utf-8');
+        } catch {
+          console.warn('[depthindex] tokens.css not found');
+        }
+      }
+      if (id === SEARCH_BAR_CSS_VIRTUAL_ID) {
+        try {
+          const devPath = path.resolve(__dirname, '..', 'src', 'styles', 'search-bar.css');
+          if (fs.existsSync(devPath)) return fs.readFileSync(devPath, 'utf-8');
+          const npmPath = path.resolve(__dirname, 'styles', 'search-bar.css');
+          return fs.readFileSync(npmPath, 'utf-8');
+        } catch {
+          console.warn('[depthindex] search-bar.css not found');
+        }
+      }
+    },
+
+    transform(code: string, id: string) {
+      const normalizedId = id.replace(/\\/g, '/');
+      if (normalizedId.includes('vitepress/dist/client/app/index.js') || normalizedId.includes('vitepress/dist/client/app/index.ts')) {
+        return {
+          code: code + `\nimport 'virtual:depthindex-client';\n`,
+          map: null
+        };
+      }
     },
 
     transformIndexHtml(html: string) {
-      const scriptTag = `<script type="module" src="/@depthindex/client.js"></script>`;
       let processed = html;
-      
-      // Inject Client script
-      if (!processed.includes('/@depthindex/client.js')) {
-        if (processed.includes('</body>')) {
-          processed = processed.replace('</body>', `${scriptTag}\n</body>`);
-        } else {
-          processed = processed + scriptTag;
-        }
-      }
-
-      // Inject CSS Tokens
-      if (!processed.includes('/depthindex-tokens.css')) {
-        const tokensLink = `<link rel="stylesheet" href="/depthindex-tokens.css">`;
-        if (processed.includes('</head>')) {
-          processed = processed.replace('</head>', `${tokensLink}\n</head>`);
-        } else {
-          processed = `<head>${tokensLink}</head>` + processed;
-        }
-      }
-
-      // Inject Search Bar CSS
-      if (!processed.includes('/depthindex-search-bar.css')) {
-        const cssLink = `<link rel="stylesheet" href="/depthindex-search-bar.css">`;
-        if (processed.includes('</head>')) {
-          processed = processed.replace('</head>', `${cssLink}\n</head>`);
-        } else {
-          processed = `<head>${cssLink}</head>` + processed;
-        }
-      }
       
       // Inject KaTeX CSS
       if (!processed.includes('katex@0.16.9/dist/katex.min.css')) {
@@ -697,10 +708,9 @@ export default function DepthIndexPlugin(
       if (!isBuild) return;
 
       try {
-        // 1. Inject client script into all statically built html files
-        console.log('[depthindex] Injecting client runtime into HTML pages...');
-        const scriptTag = `<script type="module" src="/@depthindex/client.js"></script>`;
-        injectScriptIntoHtmlFiles(outDir, scriptTag);
+        // 1. Inject KaTeX and FontAwesome CSS links into all statically built html files
+        console.log('[depthindex] Injecting CDN styles into HTML pages...');
+        injectCDNLinksIntoHtmlFiles(outDir);
 
         // 2. Extract pages content
         const { extractAllPages } = await import('./build/extractor.js');
@@ -719,26 +729,17 @@ export default function DepthIndexPlugin(
   };
 }
 
-function injectScriptIntoHtmlFiles(dir: string, scriptTag: string): void {
+function injectCDNLinksIntoHtmlFiles(dir: string): void {
   if (!fs.existsSync(dir)) return;
   const list = fs.readdirSync(dir);
   list.forEach((file: string) => {
     const fullPath = path.resolve(dir, file);
     const stat = fs.statSync(fullPath);
     if (stat && stat.isDirectory()) {
-      injectScriptIntoHtmlFiles(fullPath, scriptTag);
+      injectCDNLinksIntoHtmlFiles(fullPath);
     } else if (file.endsWith('.html')) {
       let content = fs.readFileSync(fullPath, 'utf-8');
       let modified = false;
-      
-      if (!content.includes('/@depthindex/client.js')) {
-        if (content.includes('</body>')) {
-          content = content.replace('</body>', `${scriptTag}\n</body>`);
-        } else {
-          content = content + scriptTag;
-        }
-        modified = true;
-      }
       
       if (!content.includes('katex@0.16.9/dist/katex.min.css')) {
         const katexLink = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">`;
