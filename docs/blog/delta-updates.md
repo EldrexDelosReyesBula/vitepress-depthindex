@@ -13,20 +13,23 @@ DepthIndex v1.2.0 solves this with the **Delta Update System**.
 
 During the site compilation phase (`docs:build`), DepthIndex calculates SHA-256 hashes for every page. It compares these hashes against the previous build manifest.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ BUILD TIME CRAWLER                                      │
-│                                                         │
-│ Page A (No Change)   ──► Hash matches  ──► Skip         │
-│ Page B (Updated)    ──► Hash mismatch ──► Mark modified│
-│ Page C (New Page)    ──► No past hash  ──► Mark added   │
-└────────────────────────────┬────────────────────────────┘
-                             │
-                             ▼
-                 Generates delta-manifest:
-                 - Added: ["/guide/new"]
-                 - Modified: ["/intro"]
-                 - Removed: []
+```mermaid
+flowchart TD
+    subgraph "Build Time Crawler"
+        direction TB
+        PA["Page A (No Change)"] -->|Hash matches| Skip
+        PB["Page B (Updated)"] -->|Hash mismatch| Mod
+        PC["Page C (New)"] -->|No past hash| Add
+    end
+    
+    Skip[Skip] --> Gen
+    Mod[Mark modified] --> Gen
+    Add[Mark added] --> Gen
+    
+    Gen[Generates delta-manifest]
+    Gen -->|Added: ["/guide/new"]|
+    Gen -->|Modified: ["/intro"]|
+    Gen -->|Removed: []|
 ```
 
 ## Client-Side Sync

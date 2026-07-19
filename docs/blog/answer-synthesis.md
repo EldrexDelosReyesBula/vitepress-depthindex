@@ -9,46 +9,37 @@ Searching is only half the battle. The core feature of DepthIndex is **Answer Sy
 
 Here is the exact pipeline DepthIndex uses to transform raw search blocks into user responses:
 
+    ```mermaid
+    flowchart TD
+        A[User submits query] --> B[Query Intent Analysis (NLU)]
+        B --> C[Document Clustering]
+        C --> D[Content Extraction]
+        D --> E[Synthesis & Citation]
+        E --> F[Rich Text Render]
+
+        B -->|Classifies query type| B1[Definition - What is]
+        B -->|Classifies query type| B2[Step-by-step - How to]
+        B -->|Classifies query type| B3[Solution - Troubleshooting]
+
+        C -->|Groups search results by| C1[Topic]
+        C -->|Groups search results by| C2[Headings]
+        C -->|Groups search results by| C3[Document proximity]
+
+        D -->|Extracts sentences containing| D1[Key query terms]
+        D -->|Discards| D2[Raw tables]
+        D -->|Discards| D3[Code block boundaries]
+        D -->|Discards| D4[SVGs]
+
+        E -->|Builds| E1[Answer structure]
+        E -->|Inserts| E2[Superscript tags matching citations at bottom]
+
+        F -->|Converts| F1[Inline markdown]
+        F -->|Converts| F2[Links]
+        F -->|Converts| F3[Tables]
+        F -->|Converts| F4[Blockquotes]
+        F -->|To| F5[Clean HTML ready for display in Vue]
 ```
-┌──────────────────────────────────────┐
-│        User submits query            │
-└──────────────────┬───────────────────┘
-                   ▼
-┌──────────────────────────────────────┐
-│      Query Intent Analysis (NLU)     │
-│  Classifies query type:              │
-│  - Definition (What is)              │
-│  - Step-by-step (How to)             │
-│  - Solution (Troubleshooting)        │
-└──────────────────┬───────────────────┘
-                   ▼
-┌──────────────────────────────────────┐
-│         Document Clustering          │
-│  Groups search results by topic,    │
-│  headings, and document proximity    │
-└──────────────────┬───────────────────┘
-                   ▼
-┌──────────────────────────────────────┐
-│         Content Extraction           │
-│  Extracts sentences containing key   │
-│  query terms. Discards raw tables,   │
-│  code block boundaries, and SVGs.    │
-└──────────────────┬───────────────────┘
-                   ▼
-┌──────────────────────────────────────┐
-│        Synthesis & Citation          │
-│  Builds the answer structure and    │
-│  inserts superscript tags matching    │
-│  citations at the bottom.            │
-└──────────────────┬───────────────────┘
-                   ▼
-┌──────────────────────────────────────┐
-│          Rich Text Render            │
-│  Converts inline markdown, links,   │
-│  tables, and blockquotes to clean    │
-│  HTML ready for display in Vue.      │
-└──────────────────────────────────────┘
-```
+
 
 ## Intent-Driven Templates
 
