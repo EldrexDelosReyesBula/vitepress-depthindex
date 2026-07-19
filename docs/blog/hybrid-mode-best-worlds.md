@@ -15,24 +15,56 @@ DepthIndex introduces **Hybrid Mode** to resolve this dilemma.
 
 Hybrid mode combines on-device search with remote synthesis. When a user submits a query, DepthIndex executes the following logic:
 
+```mermaid
+flowchart TD
+    A[User submits query] --> B[Run Local TF-IDF Search]
+    B --> C[Is query simple?]
+    C --> D[Return Local Synthesized Answer]
+    C --> E[Is query complex?]
+    E --> F[Fetch Cloud LLM with local snippets]
+    F --> G[Rich response with inline citations]
+
+    D -->|Instant (0ms)| H[Instant (0ms)]
+    G -->|Rich response| I[Rich response]
+
+    B -->|Run Local TF-IDF Search|
+    C -->|Direct definition| D
+    E -->|Conceptual tutorial| F
+
+    D -->|Return Local Synthesized Answer|
+    G -->|Rich response with inline citations|
+
+    H[Instant (0ms)] -->|Instant (0ms)|
+    I[Rich response] -->|Rich response|
 ```
-                  User Query
-                      │
-                      ▼
-             Run Local TF-IDF Search
-                      │
-            ┌─────────┴─────────┐
-            ▼                   ▼
-    Is query simple?     Is query complex?
-  (Direct definition)   (Conceptual tutorial)
-            │                   │
-            ▼                   ▼
-     Return Local       Fetch Cloud LLM
-    Synthesized Answer  (Piping local snippets)
-            │                   │
-            ▼                   ▼
-      Instant (0ms)     Rich response with
-                        inline citations
+
+## Resilience and Offline Fallback
+
+A key benefit of Hybrid mode is resilience. If the user loses network connectivity, or if your cloud API key hits a rate limit, DepthIndex falls back to Local mode. The user still receives a local search answer instead of an error message.
+
+This ensures your documentation assistant remains functional under any conditions.
+
+```mermaid
+flowchart TD
+    A[User submits query] --> B[Run Local TF-IDF Search]
+    B --> C[Is query simple?]
+    C --> D[Return Local Synthesized Answer]
+    C --> E[Is query complex?]
+    E --> F[Fetch Cloud LLM with local snippets]
+    F --> G[Rich response with inline citations]
+
+    D -->|Instant (0ms)| H[Instant (0ms)]
+    G -->|Rich response| I[Rich response]
+
+    B -->|Run Local TF-IDF Search|
+    C -->|Direct definition| D
+    E -->|Conceptual tutorial| F
+
+    D -->|Return Local Synthesized Answer|
+    G -->|Rich response with inline citations|
+
+    H[Instant (0ms)] -->|Instant (0ms)|
+    I[Rich response] -->|Rich response|
 ```
 
 ## Resilience and Offline Fallback
