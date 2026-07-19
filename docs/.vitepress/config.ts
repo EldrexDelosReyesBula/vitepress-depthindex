@@ -13,17 +13,7 @@ export default defineConfig({
 
   vite: {
     plugins: [
-      DepthIndex({
-        seo: {
-          siteUrl: 'https://depthindex.vercel.app',
-          siteName: 'VitePress DepthIndex',
-          siteDescription: 'On-device intelligence layer for VitePress documentation — offline-first AI search engine',
-          author: 'Eldrex Delos Reyes Bula',
-          twitterHandle: '@EldrexBula',
-          defaultImage: '/depthindex-wordmark.png',
-          aiCrawlerPolicy: 'allow',
-        }
-      }) as any
+      DepthIndex() as any
     ]
   },
 

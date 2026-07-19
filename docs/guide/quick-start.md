@@ -5,6 +5,20 @@ description: Get started with VitePress DepthIndex in under 5 minutes.
 
 # Quick Start
 
+## Starter Template (Recommended)
+The fastest way to get started is by using the pre-configured [VitePress DepthIndex Starter Template](https://github.com/EldrexDelosReyesBula/vitepress-depthindex-template):
+```bash
+# Clone the template
+git clone https://github.com/EldrexDelosReyesBula/vitepress-depthindex-template.git my-docs
+cd my-docs
+
+# Install dependencies
+npm install
+
+# Start developing
+npm run docs:dev
+```
+
 ## Prerequisites
 Before you start, make sure you have:
 - **Node.js**: Version `18.x` or higher.
