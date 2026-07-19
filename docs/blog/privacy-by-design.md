@@ -13,17 +13,25 @@ DepthIndex is designed from the ground up to respect developer privacy.
 
 In standard Local mode, **no search query or documentation text ever leaves the user's device.**
 
-```
-┌──────────────────────────────────────────────┐
-│ USER BROWSER                                 │
-│                                              │
-│  User types query: "api key configuration"   │
-│         │                                    │
-│         ▼ (Processed locally)                │
-│  Local Search Engine  ──► Local Synthesizer  │
-│                                              │
-│  [No Network Requests Made]                  │
-└──────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Browser[USER BROWSER]
+        direction TB
+        A[User types query: 'api key configuration'] --> B[Processed locally]
+        B --> C[Local Search Engine]
+        B --> D[Local Synthesizer]
+        C --> E[Generate Response]
+        D --> E
+        E --> F[No Network Requests Made]
+    end
+    
+    style Browser fill:#f0f0f0,stroke:#333,stroke-width:2px
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e9
+    style D fill:#e8f5e9
+    style E fill:#fce4ec
+    style F fill:#ffeb3b
 ```
 
 Because the index computation, sentence matching, and answer formatting occur entirely in JavaScript inside the browser, there are no remote servers logging what developers are reading.
