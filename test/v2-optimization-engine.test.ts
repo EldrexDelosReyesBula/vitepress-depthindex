@@ -4,7 +4,7 @@ import { SecureUpdateEngine } from '../src/client/secure-updater.js';
 import { DeviceAdapter } from '../src/client/device-adapter.js';
 import { CloudKnowledgeEngine } from '../src/client/cloud-knowledge.js';
 
-describe('DepthIndex 1.1.9 Optimization & Secure Pipeline', () => {
+describe('DepthIndex 1.1.10 Optimization & Secure Pipeline', () => {
   describe('DeltaIndexer', () => {
     it('should generate a full index manifest if previousManifest is null', async () => {
       const indexer = new DeltaIndexer();
@@ -23,7 +23,7 @@ describe('DepthIndex 1.1.9 Optimization & Secure Pipeline', () => {
       
       expect(fullIndex).toBeInstanceOf(Uint8Array);
       expect(deltaIndex).toBeNull();
-      expect(manifest.version).toBe('1.1.9');
+      expect(manifest.version).toBe('1.1.10');
       expect(manifest.buildId).toBeDefined();
     });
 

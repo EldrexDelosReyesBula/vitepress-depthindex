@@ -349,13 +349,13 @@ export default function DepthIndexPlugin(
       }
     },
 
-    resolveId(id: string) {
-      if (id === '/@depthindex/client.js' || id === virtualModuleId) {
-        return resolvedVirtualModuleId;
+    async resolveId(id: string, importer: string | undefined) {
+      if (id === '@theme/index') {
+        const resolved = await this.resolve(id, importer, { skipSelf: true });
+        if (resolved) {
+          return `\0depthindex-theme:${resolved.id}`;
+        }
       }
-      // Intercept the FloatingButton.vue import from the virtual client module.
-      // The package.json exports map doesn't expose this sub-path, so we resolve
-      // it manually to the actual .vue file location.
       if (id === 'vitepress-plugin-depthindex/components/FloatingButton.vue') {
         return FLOATING_BUTTON_VIRTUAL_ID;
       }
@@ -368,37 +368,26 @@ export default function DepthIndexPlugin(
     },
 
     load(id: string) {
-      if (id === resolvedVirtualModuleId) {
-        // Return client-side initializer code
+      if (id.startsWith('\0depthindex-theme:')) {
+        const originalId = id.substring('\0depthindex-theme:'.length);
         return `
-          import { createApp, h } from 'vue';
+          import { h } from 'vue';
           import FloatingButton from 'vitepress-plugin-depthindex/components/FloatingButton.vue';
           import 'vitepress-plugin-depthindex/dist/styles/tokens.css';
           import 'vitepress-plugin-depthindex/dist/styles/search-bar.css';
+          import OriginalTheme from ${JSON.stringify(originalId)};
 
-          if (typeof window !== 'undefined') {
-            const init = () => {
-              if (document.getElementById('depthindex-container')) return;
-              const container = document.createElement('div');
-              container.id = 'depthindex-container';
-              document.body.appendChild(container);
-
-              const app = createApp({
-                render() {
-                  return h(FloatingButton, {
-                    options: __DEPTHINDEX_OPTIONS__
-                  });
-                }
+          const theme = {
+            ...OriginalTheme,
+            Layout() {
+              const originalLayout = OriginalTheme.Layout || (OriginalTheme.default && OriginalTheme.default.Layout);
+              return h(originalLayout, null, {
+                'layout-bottom': () => h(FloatingButton, { options: __DEPTHINDEX_OPTIONS__ })
               });
-              app.mount('#depthindex-container');
-            };
-
-            if (document.readyState === 'loading') {
-              window.addEventListener('DOMContentLoaded', init);
-            } else {
-              init();
             }
-          }
+          };
+          export default theme;
+          export * from ${JSON.stringify(originalId)};
         `;
       }
       // Serve FloatingButton.vue source from the plugin's own location
@@ -434,16 +423,6 @@ export default function DepthIndexPlugin(
         } catch {
           console.warn('[depthindex] search-bar.css not found');
         }
-      }
-    },
-
-    transform(code: string, id: string) {
-      const normalizedId = id.replace(/\\/g, '/');
-      if (normalizedId.includes('vitepress/dist/client/app/index.js') || normalizedId.includes('vitepress/dist/client/app/index.ts')) {
-        return {
-          code: code + `\nimport 'virtual:depthindex-client';\n`,
-          map: null
-        };
       }
     },
 
