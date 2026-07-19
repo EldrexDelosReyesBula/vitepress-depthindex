@@ -554,16 +554,17 @@ export class AnswerSynthesizer {
     
     if (uniquePages.size === 1) {
       const result = uniquePages.values().next().value!;
+      const cleanContent = this.cleanSnippetForLocalAnswer(result.fullContent || result.snippet);
       const citationIndex = this.addCitation(
         ctx,
         result.page.url,
         result.page.title,
         result.page.section,
-        result.snippet.substring(0, 100)
+        cleanContent.substring(0, 100)
       );
       
       answer += `According to the documentation page on **${result.page.title}**:\n\n`;
-      answer += `${result.snippet} [^${citationIndex}]\n\n`;
+      answer += `${cleanContent} [^${citationIndex}]\n\n`;
       
       if (result.codeBlocks && result.codeBlocks.length > 0) {
         answer += `**Relevant code:**\n\n`;
@@ -577,7 +578,7 @@ export class AnswerSynthesizer {
       const mainPoints: string[] = [];
       
       for (const [topic, results] of clusters) {
-        const combined = results.map(r => r.snippet).join(' ');
+        const combined = results.map(r => this.cleanSnippetForLocalAnswer(r.snippet)).join(' ');
         const citationIndex = this.addCitation(
           ctx,
           results[0].page.url,
@@ -763,7 +764,7 @@ export class AnswerSynthesizer {
   }
   
   private extractSteps(result: SearchResult, ctx: SynthesisContext): string[] {
-    const content = result.fullContent || result.snippet;
+    const content = this.cleanSnippetForLocalAnswer(result.fullContent || result.snippet);
     const steps: string[] = [];
     
     const numberedPattern = /(?:^|\n)\s*(?:\d+[.)]\s*)(.+?)(?=(?:\n\s*\d+[.)])|$)/gs;
@@ -795,7 +796,7 @@ export class AnswerSynthesizer {
   }
   
   private extractRelevantParagraph(result: SearchResult, query: string): string {
-    const content = result.fullContent || result.snippet;
+    const content = this.cleanSnippetForLocalAnswer(result.fullContent || result.snippet);
     const queryTerms = this.extractKeyTerms(query);
     
     const paragraphs = content.split(/\n\n+/).filter(p => p.trim().length > 30);
@@ -849,7 +850,7 @@ export class AnswerSynthesizer {
     problem: string;
     solution: string;
   } | null {
-    const content = result.fullContent || result.snippet;
+    const content = this.cleanSnippetForLocalAnswer(result.fullContent || result.snippet);
     
     const problemPatterns = [
       /(?:If you (?:see|get|encounter|experience)|When|Error:|Problem:)\s*(.+?)(?:[.!?]\s|$)/i,
@@ -1104,5 +1105,25 @@ INSTRUCTIONS:
     }
     
     return features.slice(0, 10);
+  }
+
+  private cleanSnippetForLocalAnswer(text: string): string {
+    if (!text) return '';
+    return text
+      .split('\n')
+      .filter(line => {
+        const trimmed = line.trim();
+        // Remove table divider rows
+        if (trimmed.startsWith('|') && (trimmed.includes('-') || trimmed.includes(':'))) return false;
+        // Remove mermaid graph constructs
+        if (trimmed.startsWith('graph ') || trimmed.startsWith('sequenceDiagram') || trimmed.startsWith('classDiagram')) return false;
+        // Remove diagram connection links
+        if (trimmed.includes('-->') || trimmed.includes('==>') || trimmed.includes('-.->')) return false;
+        return true;
+      })
+      .join('\n')
+      .replace(/\|/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 }

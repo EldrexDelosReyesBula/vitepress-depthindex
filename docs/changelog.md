@@ -9,6 +9,58 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 
 ---
 
+## [1.2.0] - 2026-07-19
+
+### Added
+- **Rich Text Formatting** (`src/client/rich-text-renderer.ts`) — parsed structures for markdown bold, italic, underlines (`__underline__`), strikethroughs (`~~strikethrough~~`), blockquotes (`>`), inline code, links, GFM tables, and code blocks inside AI synthesized response bubbles.
+- **Superscript-First Citations** (`src/client/citation-renderer.ts`) — overhauls citation injection to transform `[^1]` markers into hyperlinked superscript tags (`<sup><a href="#cite-1">1</a></sup>`). Renders deduplicated and target-highlighted `<ol>` references at the bottom of answers only when citations exist.
+- **DOM-Clean Page Summarization & Discussion** (`src/client/page-features.ts`) — extracts page text while discarding SVGs, code blocks, tables, and Mermaid flow diagrams to avoid raw text leakage during summaries and contextual AI page discussions.
+- **Version Integrity & Security** (`src/client/version-check.ts`) — checks manual-only updates and verifies SHA-256 signatures of index buffers.
+- **AI Answer Card Dismissal** — added a close `[x]` button inside the search AI answer card that stores the dismissed state, respecting the choice during active typing.
+
+### Fixed
+- Decoupled panel theme selectors from global VitePress variables and mapped them to dark-mode-aware `--di-` tokens.
+- Addressed table/diagram line leakage into local synthesized answers.
+- Scoped search modal dark mode overrides to `.dark` globally to match VitePress's theme class configuration.
+- Enforced list-style-type resets inside message content bubbles to prevent global list resets from breaking layout formatting.
+
+---
+
+## [1.1.11] - 2026-07-19
+
+### Fixed
+- **VitePress CSS chunk hijacking**: Moved service worker, search worker, and CSS asset emission from Rollup's `generateBundle` to filesystem compilation in `closeBundle` to prevent VitePress from dropping the main theme stylesheet.
+
+---
+
+## [1.1.10] - 2026-07-19
+
+### Changed
+- **Client Script Injection**: Refactored client script loading to wrap the theme rather than injecting script tags into the DOM, avoiding hydration mismatches.
+
+---
+
+## [1.1.9] - 2026-07-19
+
+### Changed
+- **Script/CSS Packaging**: Bundled client scripts and CSS directly into VitePress's production compilation rather than utilizing dev-only HTML injections.
+
+---
+
+## [1.1.8] - 2026-07-19
+
+### Changed
+- Synchronized repository lockfiles for clean dependency reinstalls.
+
+---
+
+## [1.1.7] - 2026-07-19
+
+### Fixed
+- **Timing Race Fix**: Fixed DOMContentLoaded mounting race conditions on client scripts by aligning with VitePress's theme hydration sequence.
+
+---
+
 ## [1.1.6] - 2026-07-19
 
 ### Added

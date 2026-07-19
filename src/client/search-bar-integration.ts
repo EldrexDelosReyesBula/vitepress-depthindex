@@ -2,6 +2,8 @@ import { SearchBarConfig, SearchResult } from '../types/index.js';
 import { DepthIndexEngine } from './search-engine.js';
 import { AnswerSynthesizer, Citation } from './answer-synthesizer.js';
 import { ContentRenderer } from './renderers.js';
+import { CitationRenderer } from './citation-renderer.js';
+import { RichTextRenderer } from './rich-text-renderer.js';
 
 /**
  * SearchBarIntegration — enhances the VitePress search modal with inline AI answers.
@@ -16,12 +18,15 @@ export class SearchBarIntegration {
   private searchEngine: DepthIndexEngine;
   private synthesizer: AnswerSynthesizer;
   private renderer: ContentRenderer;
+  private citationRenderer: CitationRenderer;
+  private richTextRenderer: RichTextRenderer;
   private modalEl: HTMLElement | null = null;
   private aiAnswerContainer: HTMLElement | null = null;
   private domObserver: MutationObserver | null = null;
   private queryObserver: MutationObserver | null = null;
   private inputListener: (() => void) | null = null;
   private debounceTimer: any = null;
+  private isDismissed = false;
 
   // Only target actual search MODALS, never the persistent navbar search button
   private readonly MODAL_SELECTORS = [
@@ -44,6 +49,8 @@ export class SearchBarIntegration {
     this.searchEngine = engine;
     this.synthesizer = new AnswerSynthesizer();
     this.renderer = new ContentRenderer();
+    this.citationRenderer = new CitationRenderer();
+    this.richTextRenderer = new RichTextRenderer();
   }
 
   /**
@@ -108,6 +115,7 @@ export class SearchBarIntegration {
     this.cleanupQueryWatcher();
     this.removeAIAnswer();
     this.modalEl = null;
+    this.isDismissed = false;
   }
 
   /**
@@ -144,8 +152,10 @@ export class SearchBarIntegration {
       const query = input.value.trim();
       if (query.length < 3) {
         this.removeAIAnswer();
+        this.isDismissed = false;
         return;
       }
+      if (this.isDismissed) return;
       this.debounceTimer = setTimeout(() => {
         this.generateInlineAnswer(query, modal);
       }, 500);
@@ -158,7 +168,7 @@ export class SearchBarIntegration {
       const resultsContainer = modal.querySelector(
         '.results, .DocSearch-Hits, [class*="results"]'
       );
-      if (resultsContainer && !this.aiAnswerContainer) {
+      if (resultsContainer && !this.aiAnswerContainer && !this.isDismissed) {
         const query = input.value.trim();
         if (query.length >= 3) {
           this.injectAIAnswerContainer(resultsContainer);
@@ -253,6 +263,11 @@ export class SearchBarIntegration {
             Chat
           </button>
         ` : ''}
+        <button class="di-inline-answer-close" title="Dismiss AI Answer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
       <div class="di-inline-answer-content di-inline-answer-loading">
         <div class="di-shimmer-line"></div>
@@ -275,6 +290,14 @@ export class SearchBarIntegration {
         this.openPanel(input?.value || '');
       });
     }
+
+    const closeBtn = this.aiAnswerContainer.querySelector('.di-inline-answer-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.removeAIAnswer();
+        this.isDismissed = true;
+      });
+    }
   }
 
   /**
@@ -292,24 +315,16 @@ export class SearchBarIntegration {
       const truncated = content.length > maxLength
         ? content.substring(0, maxLength) + '...'
         : content;
-      contentEl.innerHTML = await this.renderer.renderMarkdown(truncated);
+      
+      // Render citations first, then render rich text formatting
+      const withCitations = this.citationRenderer.renderInline(truncated, citations);
+      contentEl.innerHTML = this.richTextRenderer.render(withCitations);
     }
 
     if (citesEl) {
       citesEl.innerHTML = '';
       if (citations && citations.length > 0) {
-        citations.slice(0, 3).forEach(c => {
-          const citeLink = document.createElement('a');
-          citeLink.href = c.url;
-          citeLink.className = 'di-inline-cite';
-          citeLink.target = '_blank';
-          citeLink.rel = 'noopener noreferrer';
-          citeLink.innerHTML = `
-            <span class="di-inline-cite-num">${c.index}</span>
-            ${c.title}
-          `;
-          citesEl.appendChild(citeLink);
-        });
+        citesEl.innerHTML = this.citationRenderer.renderReferences(citations);
       }
     }
   }

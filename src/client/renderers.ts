@@ -1,4 +1,6 @@
 import { ICONS } from './icons.js';
+import { RichTextRenderer } from './rich-text-renderer.js';
+import { CitationRenderer, Citation } from './citation-renderer.js';
 
 export interface RenderBlock {
   type: 'math' | 'mermaid' | 'code';
@@ -14,6 +16,8 @@ export class ContentRenderer {
   private katexObj: any = null;
   private mermaidObj: any = null;
   private placeholderCounter = 0;
+  private richTextRenderer = new RichTextRenderer();
+  private citationRenderer = new CitationRenderer();
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -38,69 +42,62 @@ export class ContentRenderer {
           startOnLoad: false,
           theme: isDark ? 'dark' : 'default',
           securityLevel: 'loose',
-          suppressErrorRendering: true,
+          loose: true
         });
       } catch (err) {
-        console.warn('[DepthIndex] Failed to initialize mermaid:', err);
+        console.warn('[DepthIndex] Failed to initialize Mermaid:', err);
       }
     }
   }
 
-  async ensureKatex(): Promise<boolean> {
+  async loadKatex(): Promise<boolean> {
     if (this.katexLoaded) return true;
-    if (typeof window === 'undefined') return false;
     try {
-      try {
-        const libName = 'katex';
-        // @ts-ignore
-        const mod = await import(/* @vite-ignore */ libName);
-        this.katexObj = mod.default || mod;
-        this.katexLoaded = true;
-        return true;
-      } catch { /* fall through */ }
-      if (!document.getElementById('katex-css')) {
-        const link = document.createElement('link');
-        link.id = 'katex-css';
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-        document.head.appendChild(link);
-      }
       this.katexObj = await this.loadScript(
-        'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js',
+        'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js',
         'katex'
       );
-      this.katexLoaded = !!this.katexObj;
-      return this.katexLoaded;
+      if (this.katexObj) {
+        this.katexLoaded = true;
+        // Dynamically load CSS
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css';
+        document.head.appendChild(link);
+        return true;
+      }
+      return false;
     } catch (err) {
       console.warn('[DepthIndex] Failed to load KaTeX dynamically:', err);
       return false;
     }
   }
 
-  async ensureMermaid(): Promise<boolean> {
+  async loadMermaid(): Promise<boolean> {
     if (this.mermaidLoaded) return true;
-    if (typeof window === 'undefined') return false;
     try {
-      try {
-        const libName = 'mermaid';
-        // @ts-ignore
-        const mod = await import(/* @vite-ignore */ libName);
-        this.mermaidObj = mod.default || mod;
+      this.mermaidObj = await this.loadScript(
+        'https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js',
+        'mermaid'
+      );
+      if (this.mermaidObj) {
         this.mermaidLoaded = true;
         this.initMermaid();
         return true;
-      } catch { /* fall through */ }
-      this.mermaidObj = await this.loadScript(
-        'https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js',
-        'mermaid'
-      );
-      this.mermaidLoaded = !!this.mermaidObj;
-      if (this.mermaidLoaded) this.initMermaid();
-      return this.mermaidLoaded;
+      }
+      return false;
     } catch (err) {
       console.warn('[DepthIndex] Failed to load Mermaid dynamically:', err);
       return false;
     }
+  }
+
+  async ensureKatex(): Promise<boolean> {
+    return this.loadKatex();
+  }
+
+  async ensureMermaid(): Promise<boolean> {
+    return this.loadMermaid();
   }
 
   private loadScript(url: string, globalName: string): Promise<any> {
@@ -123,14 +120,14 @@ export class ContentRenderer {
    * mermaid diagrams, math, images, videos, YouTube embeds, tables,
    * and bare-URL auto-linking.
    */
-  async renderMarkdown(text: string): Promise<string> {
+  async renderMarkdown(text: string, citations?: Citation[]): Promise<string> {
     if (!text) return '';
 
     const blocks: RenderBlock[] = [];
     let processed = text;
 
     // Phase 0: Extract existing HTML blocks/inline elements to protect them
-    // This covers citation <sup><a...> tags, reference <div> sections, etc.
+    // This covers citation <sup>a tags, reference div sections, etc.
     const htmlProtected: Map<string, string> = new Map();
     let htmlIdx = 0;
     processed = processed.replace(
@@ -147,14 +144,19 @@ export class ContentRenderer {
     processed = this.extractMathBlocks(processed, blocks);
     processed = this.extractCodeBlocks(processed, blocks);
 
-    // Phase 2: Render the remaining text as Markdown
-    let rendered = this.renderMarkdownToHtml(processed);
+    // Phase 2: Render the remaining text using RichTextRenderer
+    let rendered = this.richTextRenderer.render(processed);
 
     // Phase 3: Media Rendering — after markdown so bare URLs in paragraphs are caught
     rendered = this.renderYouTubeEmbeds(rendered);
     rendered = this.renderImages(rendered);
     rendered = this.renderVideos(rendered);
     rendered = this.renderAutoLinks(rendered);
+
+    // Render inline citations if provided
+    if (citations && citations.length > 0) {
+      rendered = this.citationRenderer.renderInline(rendered, citations);
+    }
 
     // Phase 4: Restore async blocks (code, mermaid, math)
     rendered = await this.replaceAsyncBlocks(rendered, blocks);

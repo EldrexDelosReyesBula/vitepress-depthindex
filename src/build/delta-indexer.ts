@@ -118,7 +118,7 @@ export class DeltaIndexer {
     const buildId = this.generateBuildId();
     
     return {
-      version: '1.1.11',
+      version: '1.2.0',
       buildId,
       timestamp: new Date().toISOString(),
       signature: '', // Signed during deploy

@@ -23,7 +23,7 @@ describe('DepthIndex 1.1.11 Optimization & Secure Pipeline', () => {
       
       expect(fullIndex).toBeInstanceOf(Uint8Array);
       expect(deltaIndex).toBeNull();
-      expect(manifest.version).toBe('1.1.11');
+      expect(manifest.version).toBe('1.2.0');
       expect(manifest.buildId).toBeDefined();
     });
 

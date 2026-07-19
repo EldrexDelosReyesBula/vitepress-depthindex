@@ -1,6 +1,6 @@
 import { ExtractedPage, DepthIndexOptions } from '../types/index.js';
 
-const DEPTHINDEX_VERSION = '1.1.11';
+const DEPTHINDEX_VERSION = '1.2.0';
 
 export class CloudOnlyStrategy {
   

@@ -309,6 +309,7 @@ import { SessionManager, ChatSession, Message } from '../client/session-manager.
 import { ConversationHandler } from '../client/conversation-handler.js';
 import { PageContextProvider } from '../client/page-context.js';
 import { ContentRenderer } from '../client/renderers.js';
+import { PageFeatures } from '../client/page-features.js';
 import { PerformanceOptimizer } from '../client/performance.js';
 import { ErrorHandler, DepthIndexError, ErrorSeverity, ErrorCategory } from '../client/error-handler.js';
 import { SecurityManager } from '../client/security.js';
@@ -500,6 +501,12 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const sessionManager = new SessionManager();
 const conversationHandler = new ConversationHandler();
 const pageContextProvider = new PageContextProvider(props.engine);
+const pageFeatures = new PageFeatures(props.engine, cloudAdapter, () => ({
+  provider: cloudProvider.value,
+  apiKey: apiKey.value,
+  model: modelName.value || '',
+  personality: props.options?.ai?.personality
+}));
 const contentRenderer = new ContentRenderer();
 const performanceOptimizer = new PerformanceOptimizer(props.engine);
 const securityManager = new SecurityManager();
@@ -761,7 +768,7 @@ async function switchSession(id: string) {
     const msgs = await sessionManager.getMessages(id);
     for (const msg of msgs) {
       if (!msg.renderedContent) {
-        msg.renderedContent = await contentRenderer.renderMarkdown(msg.content);
+        msg.renderedContent = await contentRenderer.renderMarkdown(msg.content, msg.citations);
         await sessionManager.saveMessage(msg);
       }
     }
@@ -1147,6 +1154,7 @@ async function generateAssistantResponse(queryToRun: string) {
 
       assistantMsg.content = finalContent;
       assistantMsg.sources = sourcesList;
+      assistantMsg.citations = synthesizedResponse.citations;
       assistantMsg.offlineFallback = isFallback;
 
       if (props.personalization) {
@@ -1160,7 +1168,7 @@ async function generateAssistantResponse(queryToRun: string) {
     assistantMsg.loading = false;
     loading.value = false;
     
-    assistantMsg.renderedContent = await contentRenderer.renderMarkdown(assistantMsg.content);
+    assistantMsg.renderedContent = await contentRenderer.renderMarkdown(assistantMsg.content, assistantMsg.citations);
 
     await sessionManager.saveMessage({
       id: assistantMsg.id,
@@ -1169,6 +1177,7 @@ async function generateAssistantResponse(queryToRun: string) {
       content: assistantMsg.content,
       renderedContent: assistantMsg.renderedContent,
       sources: assistantMsg.sources,
+      citations: assistantMsg.citations,
       timestamp: assistantMsg.timestamp,
       offlineFallback: assistantMsg.offlineFallback
     });
@@ -1226,7 +1235,8 @@ async function summarizePage() {
 
     loadingStage.value = 'generating';
     loadingProgress.value = 90;
-    const summary = await pageContextProvider.summarizePage();
+    const modeParam = searchMode.value === 'on-device' ? 'local' : (searchMode.value === 'hybrid' ? 'hybrid' : 'cloud');
+    const summary = await pageFeatures.summarizePage(modeParam);
     await sleep(300);
 
     assistantMsg.content = summary;
@@ -1235,7 +1245,7 @@ async function summarizePage() {
   } finally {
     assistantMsg.loading = false;
     loading.value = false;
-    assistantMsg.renderedContent = await contentRenderer.renderMarkdown(assistantMsg.content);
+    assistantMsg.renderedContent = await contentRenderer.renderMarkdown(assistantMsg.content, assistantMsg.citations);
     await sessionManager.saveMessage({
       id: assistantMsg.id,
       sessionId: assistantMsg.sessionId,
@@ -1272,14 +1282,15 @@ async function discussPage() {
 
   try {
     loadingStage.value = 'analyzing';
-    const discussion = await pageContextProvider.discussPage(topic.trim());
+    const modeParam = searchMode.value === 'on-device' ? 'local' : (searchMode.value === 'hybrid' ? 'hybrid' : 'cloud');
+    const discussion = await pageFeatures.discussPage(topic.trim(), modeParam);
     assistantMsg.content = discussion;
   } catch (err: any) {
     assistantMsg.content = `Failed to generate page discussion: ${err.message || err}`;
   } finally {
     assistantMsg.loading = false;
     loading.value = false;
-    assistantMsg.renderedContent = await contentRenderer.renderMarkdown(assistantMsg.content);
+    assistantMsg.renderedContent = await contentRenderer.renderMarkdown(assistantMsg.content, assistantMsg.citations);
     await sessionManager.saveMessage({
       id: assistantMsg.id,
       sessionId: assistantMsg.sessionId,
@@ -1484,6 +1495,17 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 <style scoped>
 /* ─── Panel Shell ─────────────────────────────────────────── */
 .depthindex-panel {
+  /* Decouple panel theme variables and map them to custom di- tokens */
+  --vp-c-bg: var(--di-bg);
+  --vp-c-divider: var(--di-border);
+  --vp-c-text-1: var(--di-text);
+  --vp-c-text-2: var(--di-text-secondary);
+  --vp-c-text-3: var(--di-text-tertiary);
+  --vp-c-brand: var(--di-primary);
+  --vp-c-brand-dimm: var(--di-primary-light);
+  --vp-c-bg-soft: var(--di-bg-secondary);
+  --vp-c-bg-mute: var(--di-bg-tertiary);
+
   position: fixed;
   bottom: 80px;
   right: 24px;
@@ -1499,6 +1521,18 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
   overflow: hidden;
   z-index: 199;
   transition: width 0.25s ease, height 0.25s ease;
+}
+
+/* Explicit list style resets for reliable list formatting */
+.message-content :deep(ul) {
+  list-style-type: disc !important;
+  padding-left: 20px !important;
+  margin: 8px 0 !important;
+}
+.message-content :deep(ol) {
+  list-style-type: decimal !important;
+  padding-left: 20px !important;
+  margin: 8px 0 !important;
 }
 .depthindex-panel.small  { width: 320px; height: 440px; }
 .depthindex-panel.medium { width: 420px; height: 600px; }
