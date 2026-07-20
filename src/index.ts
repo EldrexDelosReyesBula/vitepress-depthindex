@@ -62,11 +62,17 @@ const DEFAULT_OPTIONS: DepthIndexOptions = {
   },
   searchBar: {
     enabled: true,
-    position: 'top',
-    maxAnswerLength: 500,
+    mode: 'overview',
+    overviewMaxLength: 400,
     showExpandButton: true,
+    askAIButtonText: 'Ask AI',
     placeholder: 'Ask AI or search docs...',
     shortcut: '⌘K',
+    // Legacy fields
+    position: 'top',
+    answerStyle: 'overview',
+    maxAnswerLength: 300,
+    showTransferHint: true,
   },
   panel: {
     enabled: true,
@@ -121,14 +127,59 @@ const DEFAULT_OPTIONS: DepthIndexOptions = {
     includeMetadata: true,
   },
   extensions: [],
+  synthesis: {
+    conversationMemoryDepth: 2,
+    memoryInclude: ['user', 'assistant'],
+    recencyWeight: true,
+    customEntities: [],
+    followUpDetection: {
+      sensitivity: 'normal',
+      customFollowUpPatterns: [
+        'what about',
+        'can you also',
+        'how does that',
+        'tell me more',
+      ],
+      sessionTimeout: 300000,
+    },
+  },
+  search: {
+    conversationBoost: true,
+    boostFactor: 1.5,
+    topicAnalysisDepth: 3,
+  },
+  ai: {
+    systemContext: '',
+  },
 };
 
-export default function DepthIndexPlugin(
-  options: Partial<DepthIndexOptions> = {}
-): Plugin {
-  // Deep merge default options with user options
-  const configOptions: DepthIndexOptions = {
-    ...DEFAULT_OPTIONS,
+function isCompatibleVersion(minVersion: string, currentVersion: string): boolean {
+  try {
+    const minParts = minVersion.split('.').map(Number);
+    const currParts = currentVersion.replace(/[^\d.]/g, '').split('.').map(Number);
+    for (let i = 0; i < Math.max(minParts.length, currParts.length); i++) {
+      const minVal = minParts[i] || 0;
+      const currVal = currParts[i] || 0;
+      if (currVal > minVal) return true;
+      if (currVal < minVal) return false;
+    }
+    return true;
+  } catch {
+    return true;
+  }
+}
+
+function sanitizeErrorMessage(error: any): string {
+  if (error instanceof Error) {
+    return error.message.replace(/[\\/]Users[\\/][^\\/]+[\\/]/g, '[user]/');
+  }
+  return String(error).substring(0, 200);
+}
+
+function validateOptions(options: Partial<DepthIndexOptions>): DepthIndexOptions {
+  const defaults = DEFAULT_OPTIONS;
+  const merged: DepthIndexOptions = {
+    ...defaults,
     ...options,
     placement: {
       mode: options.placement?.mode || (options.ui?.showFloatingButton === false ? 'search-bar' : 'all'),
@@ -136,12 +187,18 @@ export default function DepthIndexPlugin(
     },
     searchBar: {
       enabled: options.searchBar?.enabled ?? (options.ui?.enableModal ?? true),
-      position: options.searchBar?.position || 'top',
-      maxAnswerLength: options.searchBar?.maxAnswerLength || 500,
+      mode: options.searchBar?.mode || 'overview',
+      overviewMaxLength: options.searchBar?.overviewMaxLength || 400,
       showExpandButton: options.searchBar?.showExpandButton ?? true,
+      askAIButtonText: options.searchBar?.askAIButtonText || 'Ask AI',
       placeholder: options.searchBar?.placeholder || 'Ask AI or search docs...',
       logo: options.searchBar?.logo,
       shortcut: options.searchBar?.shortcut || '⌘K',
+      // Legacy fields
+      position: options.searchBar?.position || 'top',
+      answerStyle: options.searchBar?.answerStyle || 'overview',
+      maxAnswerLength: options.searchBar?.maxAnswerLength || 300,
+      showTransferHint: options.searchBar?.showTransferHint ?? true,
     },
     panel: {
       enabled: options.panel?.enabled ?? true,
@@ -161,32 +218,79 @@ export default function DepthIndexPlugin(
       label: options.floatingButton?.label,
     },
     indexConfig: {
-      ...DEFAULT_OPTIONS.indexConfig,
+      ...defaults.indexConfig,
       ...options.indexConfig,
     },
     ui: {
-      ...DEFAULT_OPTIONS.ui,
+      ...defaults.ui,
       ...options.ui,
     },
     features: {
-      ...DEFAULT_OPTIONS.features,
+      ...defaults.features,
       ...options.features,
     },
     personalization: {
-      ...DEFAULT_OPTIONS.personalization,
+      ...defaults.personalization,
       ...options.personalization,
-      maxHistory: options.personalization?.maxHistory ?? DEFAULT_OPTIONS.personalization.maxHistory,
+      maxHistory: options.personalization?.maxHistory ?? defaults.personalization.maxHistory,
     },
     offline: {
-      ...DEFAULT_OPTIONS.offline,
+      ...defaults.offline,
       ...options.offline,
     },
     llmText: {
-      ...DEFAULT_OPTIONS.llmText,
+      ...defaults.llmText,
       ...options.llmText,
     },
     extensions: options.extensions || [],
+    synthesis: {
+      conversationMemoryDepth: options.synthesis?.conversationMemoryDepth ?? 2,
+      memoryInclude: options.synthesis?.memoryInclude || ['user', 'assistant'],
+      recencyWeight: options.synthesis?.recencyWeight ?? true,
+      customEntities: options.synthesis?.customEntities || [],
+      followUpDetection: {
+        sensitivity: options.synthesis?.followUpDetection?.sensitivity || 'normal',
+        customFollowUpPatterns: options.synthesis?.followUpDetection?.customFollowUpPatterns || [
+          'what about',
+          'can you also',
+          'how does that',
+          'tell me more',
+        ],
+        sessionTimeout: options.synthesis?.followUpDetection?.sessionTimeout ?? 300000,
+      },
+    },
+    search: {
+      conversationBoost: options.search?.conversationBoost ?? true,
+      boostFactor: options.search?.boostFactor ?? 1.5,
+      topicAnalysisDepth: options.search?.topicAnalysisDepth ?? 3,
+    },
+    ai: {
+      ...defaults.ai,
+      ...options.ai,
+      systemContext: options.ai?.systemContext || '',
+    },
   };
+
+  // Validate search mode
+  if (!merged.searchMode || !['on-device', 'hybrid', 'cloud'].includes(merged.searchMode as any)) {
+    console.warn(`[DepthIndex] Invalid searchMode "${merged.searchMode}". Falling back to "on-device".`);
+    merged.searchMode = 'on-device';
+  }
+  
+  // Validate offline config
+  if (merged.offline?.enabled && typeof navigator !== 'undefined' && !navigator.serviceWorker) {
+    console.warn('[DepthIndex] Service workers not supported. Offline mode disabled.');
+    merged.offline.enabled = false;
+  }
+
+  return merged;
+}
+
+export default function DepthIndexPlugin(
+  options: Partial<DepthIndexOptions> = {}
+): Plugin {
+  // Validate options at startup
+  const configOptions = validateOptions(options);
 
   const apiKeyEnv = (typeof process !== 'undefined' && process.env?.VITE_DEPTHINDEX_CLOUD_API_KEY) || 
                     (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_DEPTHINDEX_CLOUD_API_KEY);
@@ -303,8 +407,16 @@ export default function DepthIndexPlugin(
     configResolved(config: any) {
       isBuild = config.command === 'build';
       
-      // VitePress exposes its config on ResolvedConfig
+      // Guard: Ensure VitePress is available
       const vpConfig = (config as any).vitepress;
+      if (!vpConfig) {
+        console.warn('[DepthIndex] VitePress not detected. Plugin requires VitePress ^1.0.0.');
+      } else {
+        if (vpConfig.version && !isCompatibleVersion('1.0.0', vpConfig.version)) {
+          console.warn(`[DepthIndex] VitePress ${vpConfig.version} may not be fully compatible. Minimum: 1.0.0`);
+        }
+      }
+      
       if (vpConfig) {
         srcDir = vpConfig.srcDir || config.root;
         outDir = vpConfig.outDir || path.resolve(config.root, '.vitepress/dist');
@@ -481,7 +593,14 @@ export default function DepthIndexPlugin(
       
       // Inject Client script in dev mode
       if (!processed.includes('/@depthindex/client.js')) {
-        const scriptTag = `<script type="module" src="/@depthindex/client.js"></script>`;
+        const scriptTag = `
+<script type="module">
+  try {
+    import('/@depthindex/client.js');
+  } catch (e) {
+    console.warn('DepthIndex failed to load:', (e as any)?.message || e);
+  }
+</script>`;
         if (processed.includes('</body>')) {
           processed = processed.replace('</body>', `${scriptTag}\n</body>`);
         } else {
@@ -607,6 +726,12 @@ export default function DepthIndexPlugin(
         }
       } catch (err) {
         console.error('[depthindex] Failed to generate search index:', err);
+      }
+    },
+
+    buildEnd(error?: Error) {
+      if (error) {
+        console.error('[DepthIndex] Build failed:', sanitizeErrorMessage(error));
       }
     },
 

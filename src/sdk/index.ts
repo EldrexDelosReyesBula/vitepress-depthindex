@@ -405,3 +405,8 @@ export class PluginRegistry {
 
 export { PrivacyFirewall } from '../privacy/firewall.js';
 export { TranslationEngine } from '../i18n/engine.js';
+export { QueryGuard } from '../privacy/query-guard.js';
+export { PrivacyAnalytics } from '../analytics/privacy-analytics.js';
+export { default as TTSExtension } from '../extensions/tts/index.js';
+export { ConversationMemory } from '../client/conversation-memory.js';
+export type { MemoryEntry } from '../client/conversation-memory.js';

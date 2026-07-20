@@ -4,20 +4,24 @@
       <!-- Header -->
       <div class="config-header">
         <div class="header-left">
-          <div class="header-icon">☁️</div>
+          <div class="header-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
           <div>
             <h3>{{ t('settings.title') }}</h3>
             <p class="header-subtitle">{{ t('settings.subtitle') }}</p>
           </div>
         </div>
         <button @click="close" class="close-btn" :aria-label="t('panel.close')">
-          ✕
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       
       <!-- Info Banner -->
       <div class="info-banner">
-        <span class="info-icon">💡</span>
+        <span class="info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </span>
         <span>{{ t('settings.info') }}</span>
       </div>
       
@@ -33,7 +37,11 @@
               :class="['mode-option', { active: config.searchMode === mode.value }]"
               @click="config.searchMode = mode.value"
             >
-              <span class="mode-icon">{{ mode.icon }}</span>
+              <span class="mode-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: var(--di-primary);">
+                <svg v-if="mode.value === 'on-device'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line><line x1="12" y1="17" x2="12" y2="20"></line></svg>
+                <svg v-else-if="mode.value === 'hybrid'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                <svg v-else-if="mode.value === 'cloud'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+              </span>
               <div class="mode-info">
                 <span class="mode-name">{{ t('settings.mode.' + mode.value + '.name') }}</span>
                 <span class="mode-desc">{{ t('settings.mode.' + mode.value + '.desc') }}</span>
@@ -99,8 +107,10 @@
                 @click="showKey = !showKey" 
                 class="toggle-visibility"
                 :aria-label="showKey ? 'Hide key' : 'Show key'"
+                style="display: inline-flex; align-items: center; justify-content: center; padding: 4px;"
               >
-                {{ showKey ? '🙈' : '👁️' }}
+                <svg v-if="showKey" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
             <p v-if="keyError" class="error-message">{{ keyError }}</p>
@@ -148,14 +158,19 @@
             class="test-btn"
           >
             <span v-if="testing" class="spinner"></span>
-            <span v-else>🔌</span>
+            <span v-else style="display: inline-flex; align-items: center; justify-content: center; margin-right: 4px; vertical-align: middle;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v8H2z"></path><line x1="6" y1="12" x2="14" y2="12"></line></svg>
+            </span>
             {{ testing ? t('settings.testing') : t('settings.testConnection') }}
           </button>
           
           <!-- Test Result -->
           <Transition name="fade">
             <div v-if="testResult" :class="['test-result', testResult.status]">
-              <span class="test-icon">{{ testResult.status === 'success' ? '✅' : '❌' }}</span>
+              <span class="test-icon" style="display: inline-flex; align-items: center; justify-content: center;">
+                <svg v-if="testResult.status === 'success'" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: #ef4444;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </span>
               <span>{{ testResult.message }}</span>
             </div>
           </Transition>
@@ -165,8 +180,10 @@
       <!-- Footer Actions -->
       <div class="config-footer">
         <div class="footer-info">
-          <span class="storage-indicator">
-            <span class="storage-icon">🔒</span>
+          <span class="storage-indicator" style="display: inline-flex; align-items: center; gap: 4px;">
+            <span class="storage-icon" style="display: inline-flex; align-items: center;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
             {{ t('settings.storageIndicator') }}
           </span>
         </div>
@@ -179,13 +196,17 @@
       </div>
       
       <!-- Security & Compliance -->
-      <ComplianceBadges style="margin-top: 1rem;" />
+      <ComplianceBadges :options="options" style="margin-top: 1rem;" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
+
+const props = defineProps<{
+  options?: any;
+}>();
 import { SecurityManager } from '../client/security.js';
 import { CloudAdapter } from '../client/cloud-adapter.js';
 import ComplianceBadges from './ComplianceBadges.vue';
@@ -231,25 +252,21 @@ const keyError = ref('');
 const searchModes: Array<{
   value: 'on-device' | 'hybrid' | 'cloud';
   name: string;
-  icon: string;
   description: string;
 }> = [
   {
     value: 'on-device',
     name: 'On-Device Only',
-    icon: '💻',
     description: '100% local, works offline, instant results',
   },
   {
     value: 'hybrid',
     name: 'Hybrid',
-    icon: '🔄',
     description: 'Local search + Cloud AI reasoning for better answers',
   },
   {
     value: 'cloud',
     name: 'Cloud-Only',
-    icon: '☁️',
     description: 'Full cloud AI answers (requires API key)',
   },
 ];

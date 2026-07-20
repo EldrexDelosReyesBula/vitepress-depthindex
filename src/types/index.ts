@@ -127,14 +127,74 @@ export interface PlacementConfig {
 export interface SearchBarConfig {
   enabled?: boolean;
   position?: 'top' | 'bottom';
+  
+  /**
+   * Search bar display mode.
+   * 
+   * 'overview' — Show concise AI overview in search dropdown (default)
+   * 'button'   — Show "Ask AI" button, opens chat panel directly (like Algolia)
+   * 'none'     — No AI integration in search bar
+   * 
+   * @default 'overview'
+   */
+  mode?: 'overview' | 'button' | 'none';
+  
+  /**
+   * Maximum characters for overview text.
+   * @default 400
+   */
+  overviewMaxLength?: number;
+  
+  /**
+   * Button text for "Ask AI" mode.
+   * @default 'Ask AI'
+   */
+  askAIButtonText?: string;
+  
+  /**
+   * Style of inline answers in search bar (Legacy).
+   * 'overview' — Brief summary, no code, no citations (default)
+   * 'detailed' — Full answer with code blocks and citations
+   */
+  answerStyle?: 'overview' | 'detailed';
+  
+  /**
+   * Maximum characters for inline answer (Legacy).
+   * @default 300
+   */
   maxAnswerLength?: number;
+  
+  /**
+   * Show "Open in Chat" button.
+   * @default true
+   */
   showExpandButton?: boolean;
+  
+  /**
+   * Show hint text "Press Enter for detailed answer" (Legacy).
+   * @default true
+   */
+  showTransferHint?: boolean;
+  
+  /**
+   * Custom placeholder text.
+   * @default 'Ask AI or search docs...'
+   */
   placeholder?: string;
+  
+  /**
+   * Custom logo/icon.
+   */
   logo?: {
     src?: string;
     icon?: string;
     alt?: string;
   };
+  
+  /**
+   * Keyboard shortcut hint.
+   * @default '⌘K'
+   */
   shortcut?: string;
 }
 
@@ -235,6 +295,7 @@ export interface DepthIndexOptions {
   settings?: SettingsConfig;
   ai?: {
     personality?: AIPersonalityConfig;
+    systemContext?: string;
     logo?: {
       src?: string;
       alt?: string;
@@ -243,6 +304,22 @@ export interface DepthIndexOptions {
     };
   };
   usageLimits?: UsageLimitsConfig;
+  synthesis?: {
+    conversationMemoryDepth?: number;
+    memoryInclude?: ('user' | 'assistant')[];
+    recencyWeight?: boolean;
+    customEntities?: string[];
+    followUpDetection?: {
+      sensitivity?: 'strict' | 'normal' | 'relaxed';
+      customFollowUpPatterns?: string[];
+      sessionTimeout?: number;
+    };
+  };
+  search?: {
+    conversationBoost?: boolean;
+    boostFactor?: number;
+    topicAnalysisDepth?: number;
+  };
 }
 
 export interface LanguageConfig {

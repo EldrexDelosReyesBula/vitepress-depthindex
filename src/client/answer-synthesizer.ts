@@ -60,12 +60,15 @@ export class AnswerSynthesizer {
     },
     onProgress?: (stage: SynthesisStage) => void
   ): Promise<SynthesizedAnswer> {
+    const safeQuery = query || '';
+    const safeResults = Array.isArray(results) ? results : [];
+
     const MAX_RETRIES = 2;
     let lastError: Error | null = null;
     const ctx: SynthesisContext = {
       citations: [],
       usedSnippets: new Set(),
-      query,
+      query: safeQuery,
       startTime: typeof performance !== 'undefined' ? performance.now() : Date.now(),
       requestId: this.generateRequestId(),
     };
@@ -86,7 +89,7 @@ export class AnswerSynthesizer {
           progress: 10,
         });
         
-        const relevant = this.filterRelevant(results, query);
+        const relevant = this.filterRelevant(safeResults, safeQuery);
         
         if (relevant.length === 0) {
           progressCallback?.({
@@ -94,7 +97,7 @@ export class AnswerSynthesizer {
             message: 'No matching documentation found...',
             progress: 100,
           });
-          return this.handleNoResults(query, ctx);
+          return this.handleNoResults(safeQuery, ctx);
         }
         
         progressCallback?.({
@@ -168,14 +171,18 @@ export class AnswerSynthesizer {
   }
   
   private filterRelevant(results: SearchResult[], query: string): SearchResult[] {
-    const queryTerms = this.extractKeyTerms(query);
-    if (queryTerms.length === 0) return results.slice(0, 8);
+    if (!results || !Array.isArray(results)) return [];
+    const queryTerms = this.extractKeyTerms(query || '');
+    if (queryTerms.length === 0) return results.filter(r => r && r.page).slice(0, 8);
     
     return results
       .filter(result => {
+        if (!result || !result.page) return false;
+        const snippet = result.snippet || '';
+        const title = result.page.title || '';
         const matchCount = queryTerms.filter(term => 
-          result.snippet.toLowerCase().includes(term.toLowerCase()) ||
-          result.page.title.toLowerCase().includes(term.toLowerCase())
+          snippet.toLowerCase().includes(term.toLowerCase()) ||
+          title.toLowerCase().includes(term.toLowerCase())
         ).length;
         
         return matchCount >= 1;
@@ -185,8 +192,10 @@ export class AnswerSynthesizer {
   
   private clusterResults(results: SearchResult[]): Map<string, SearchResult[]> {
     const clusters = new Map<string, SearchResult[]>();
+    if (!results) return clusters;
     
     for (const result of results) {
+      if (!result || !result.page) continue;
       const topic = this.extractMainTopic(result);
       
       if (!clusters.has(topic)) {
@@ -199,17 +208,18 @@ export class AnswerSynthesizer {
   }
   
   private extractMainTopic(result: SearchResult): string {
+    if (!result || !result.page) return 'general';
     if (result.page.section) {
       return result.page.section.toLowerCase()
         .replace(/^(how|what|why|when|where)\s+(to|is|are|do|does)\s+/i, '')
         .trim();
     }
     
-    if (result.headings && result.headings.length > 0) {
+    if (result.headings && result.headings.length > 0 && result.headings[0]) {
       return result.headings[0].toLowerCase().trim();
     }
     
-    return result.page.title.toLowerCase().trim();
+    return (result.page.title || 'untitled').toLowerCase().trim();
   }
   
   private synthesizeLocal(

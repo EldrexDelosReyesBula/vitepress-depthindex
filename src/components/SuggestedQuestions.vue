@@ -69,7 +69,10 @@ defineEmits<{ (e: 'select', question: string): void }>();
   color: var(--vp-c-text-1, #3c3c3c);
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              color 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   line-height: 1.4;
 }
 
@@ -77,6 +80,11 @@ defineEmits<{ (e: 'select', question: string): void }>();
   background: var(--vp-c-brand-dimm, rgba(62,175,124,0.07));
   border-color: var(--vp-c-brand, #3eaf7c);
   color: var(--vp-c-brand, #3eaf7c);
+  transform: translateY(-1px) scale(1.015);
+}
+
+.di-suggestion:active {
+  transform: translateY(0) scale(0.985);
 }
 
 .di-suggestion-icon {

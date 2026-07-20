@@ -5,7 +5,7 @@ description: "The official blog of VitePress DepthIndex — tutorials, technical
 
 # DepthIndex Blog
 
-Welcome to the official DepthIndex blog. Explore tutorials, technical deep dives, and case studies about building modern, local-first documentation with AI assistance.
+Welcome to the official DepthIndex blog. Explore tutorials, technical deep dives, and articles about building modern, local-first documentation with AI assistance.
 
 ## 🚀 Getting Started
 1. **[Turn Your VitePress Docs Into an AI Assistant in 5 Minutes](./five-minute-ai-setup)** — A quick-start guide to injecting AI power into your documentation site.
@@ -43,13 +43,12 @@ Welcome to the official DepthIndex blog. Explore tutorials, technical deep dives
 21. **[How to Add Google Analytics to Your DepthIndex Docs](./google-analytics-integration)** — Logging user interactions to external systems.
 
 ## 📈 Use Cases & Comparisons
-22. **[From Open Source Project to AI-Powered Docs](./open-source-case-study)** — How community projects are using DepthIndex.
-23. **[Building a Subscription-Based Documentation Portal](./subscription-docs-portal)** — Gating AI features behind access keys.
-24. **[Creating Internal Company Documentation with AI Search](./internal-enterprise-docs)** — Restricting queries to secure corporate intranets.
-25. **[DepthIndex vs Algolia vs Inkeep](./depthindex-vs-algolia-vs-inkeep)** — Feature comparison for developer documentation search.
-26. **[Why On-Device Search Beats Cloud-Only](./on-device-vs-cloud-search)** — Analyzing cost, speed, offline-safety, and availability.
+22. **[Building a Subscription-Based Documentation Portal](./subscription-docs-portal)** — Gating AI features behind access keys.
+23. **[Creating Internal Company Documentation with AI Search](./internal-enterprise-docs)** — Restricting queries to secure corporate intranets.
+24. **[DepthIndex vs Algolia vs Inkeep](./depthindex-vs-algolia-vs-inkeep)** — Feature comparison for developer documentation search.
+25. **[Why On-Device Search Beats Cloud-Only](./on-device-vs-cloud-search)** — Analyzing cost, speed, offline-safety, and availability.
 
 ## 🛠️ Developer Guides
-27. **[The Complete DepthIndex Configuration Guide](./complete-config-guide)** — Explaining every key and default setting.
-28. **[Deploying DepthIndex Docs on Vercel and Netlify](./deploy-vercel-netlify)** — Step-by-step deployment instructions for modern CDNs.
-29. **[Optimizing DepthIndex for Large Documentation Sites](./scale-large-docs)** — Benchmarking and tuning performance on 1,000+ pages.
+26. **[The Complete DepthIndex Configuration Guide](./complete-config-guide)** — Explaining every key and default setting.
+27. **[Deploying DepthIndex Docs on Vercel and Netlify](./deploy-vercel-netlify)** — Step-by-step deployment instructions for modern CDNs.
+28. **[Optimizing DepthIndex for Large Documentation Sites](./scale-large-docs)** — Benchmarking and tuning performance on 1,000+ pages.

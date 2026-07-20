@@ -88,8 +88,10 @@
   
   "settings": {
     "title": "Settings",
+    "subtitle": "Configure your AI assistant and search preferences",
     "language": "Language",
     "languageDescription": "Choose your preferred language for the interface and answers",
+    "info": "These settings are saved locally in your browser and apply only to this device.",
     "searchMode": "Search Mode",
     "searchModeDescription": "Choose how answers are generated",
     "modes": {
@@ -108,7 +110,8 @@
     "saveConfiguration": "Save Configuration",
     "resetDefaults": "Reset to Defaults",
     "clearHistory": "Clear History",
-    "clearHistoryConfirm": "Are you sure you want to clear all chat history?"
+    "clearHistoryConfirm": "Are you sure you want to clear all chat history?",
+    "storageIndicator": "Stored in local storage"
   },
   
   "errors": {

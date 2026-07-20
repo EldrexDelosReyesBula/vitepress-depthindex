@@ -1,20 +1,19 @@
 <template>
-  <div class="compliance-section">
-    <!-- Badges Row -->
-    <div class="badges-row">
-      <div 
-        v-for="badge in visibleBadges" 
-        :key="badge.label"
-        class="compliance-badge"
-        :title="badge.description"
-      >
-        <span class="badge-icon">{{ badge.icon }}</span>
-        <span class="badge-label">{{ badge.label }}</span>
-      </div>
+  <div v-if="noticeMode !== 'hidden'" class="compliance-section">
+    <!-- Link Mode -->
+    <div v-if="noticeMode === 'link'" class="notice-link-wrapper">
+      <a :href="noticeLink" target="_blank" rel="noopener noreferrer" class="notice-external-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="link-icon">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+        Legal Notices & Disclaimers
+      </a>
     </div>
-    
-    <!-- Expandable Notices -->
-    <details class="notices-details">
+
+    <!-- Detailed Expandable Notices Mode -->
+    <details v-else class="notices-details" open>
       <summary class="notices-summary">
         <span>📋 Legal Notices & Disclaimers</span>
       </summary>
@@ -56,15 +55,23 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { COMPLIANCE_BADGES } from '../client/legal-notices.js';
 
-const visibleBadges = computed(() => [
-  COMPLIANCE_BADGES.NO_TRACKING,
-  COMPLIANCE_BADGES.NO_PII,
-  COMPLIANCE_BADGES.LOCAL_FIRST,
-  COMPLIANCE_BADGES.OPEN_SOURCE,
-  COMPLIANCE_BADGES.PH_COMPLIANT,
-]);
+const props = defineProps<{
+  options?: any;
+}>();
+
+const noticeMode = computed(() => {
+  const opt = props.options?.ui?.legalNotice;
+  if (opt === false || opt === 'hidden') return 'hidden';
+  if (typeof opt === 'string' && (opt.startsWith('http://') || opt.startsWith('https://'))) {
+    return 'link';
+  }
+  return 'details';
+});
+
+const noticeLink = computed(() => {
+  return typeof props.options?.ui?.legalNotice === 'string' ? props.options.ui.legalNotice : '#';
+});
 
 const legalNotices = {
   AS_IS: 'VitePress DepthIndex is provided "AS-IS", without warranty of any kind. The creator(s) are not liable for any damages arising from use.',
@@ -85,39 +92,35 @@ const legalNotices = {
   font-size: 0.85rem;
 }
 
-.badges-row {
+.notice-link-wrapper {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
 }
 
-.compliance-badge {
+.notice-external-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-  background: var(--vp-c-bg, #ffffff);
-  border: 1px solid var(--vp-c-gutter, #e2e2e3);
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: help;
-  transition: all 0.2s ease;
+  color: var(--vp-c-brand, #3eaf7c);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
 }
 
-.compliance-badge:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-color: var(--vp-c-brand, #3eaf7c);
+.notice-external-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
-.badge-icon {
-  font-size: 1rem;
+.link-icon {
+  flex-shrink: 0;
 }
 
 .notices-details {
-  border-top: 1px dashed var(--vp-c-gutter, #e2e2e3);
-  padding-top: 8px;
+  border-top: none;
+  padding-top: 0;
 }
 
 .notices-summary {
@@ -126,6 +129,7 @@ const legalNotices = {
   user-select: none;
   color: var(--vp-c-text-2, #666666);
   outline: none;
+  margin-bottom: 8px;
 }
 
 .notices-summary:hover {

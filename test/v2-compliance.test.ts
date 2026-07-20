@@ -106,7 +106,7 @@ describe('DepthIndex Privacy & Compliance Framework', () => {
       await adapter.query('My email is user@domain.com', config);
 
       expect(queryOpenAISpy).toHaveBeenCalled();
-      const passedMessages = queryOpenAISpy.mock.calls[0][0];
+      const passedMessages = queryOpenAISpy.mock.calls[0][0] as any[];
       const userMessage = passedMessages.find((m: any) => m.role === 'user');
       expect(userMessage.content).not.toContain('user@domain.com');
       expect(userMessage.content).toContain('u***@domain.com');

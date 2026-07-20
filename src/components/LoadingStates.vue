@@ -95,7 +95,7 @@ function typeMessage(msg: string) {
   function tick() {
     if (charIndex < msg.length) {
       displayedText.value += msg[charIndex++];
-      typeTimer = setTimeout(tick, 28 + Math.random() * 18);
+      typeTimer = setTimeout(tick, 14 + Math.random() * 8);
     }
   }
   tick();

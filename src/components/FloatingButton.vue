@@ -167,9 +167,9 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              box-shadow 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              background 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   /* Entrance: slides up and fades in 0.8s after page load */
   animation: diSlideUpFade 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
 }
@@ -187,13 +187,13 @@ onUnmounted(() => {
 }
 
 .depthindex-trigger-btn:hover {
-  transform: translateY(-3px) scale(1.04);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45), 0 3px 10px rgba(0, 0, 0, 0.16);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.45), 0 3px 10px rgba(0, 0, 0, 0.16);
   background: linear-gradient(135deg, #9bb2f3 0%, #57b38d 100%);
 }
 
 .depthindex-trigger-btn:active {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.97);
 }
 
 .trigger-sparkle {
@@ -484,6 +484,22 @@ html.dark .di-inline-answer-content pre { background: #0d1117; }
 .di-powered-by-link:hover {
   opacity: 0.8;
   text-decoration: underline;
+}
+
+/* Transfer hint */
+.di-inline-answer-hint {
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--di-text-secondary, #64748b);
+  border-top: 1px solid rgba(224, 231, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  text-align: right;
+  font-style: italic;
+}
+.dark .di-inline-answer-hint {
+  border-top-color: rgba(99, 102, 241, 0.15);
+  background: rgba(0, 0, 0, 0.1);
+  color: #94a3b8;
 }
 </style>
 

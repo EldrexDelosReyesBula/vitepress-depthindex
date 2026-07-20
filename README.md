@@ -26,6 +26,7 @@ For detailed installation guides, configuration schemas, API references, FAQs, a
 * **PWA & Offline-First**: Pre-registers a service worker (`depthindex-sw.js`) to cache and run search indexes and outlines without internet connections.
 * **LLMs.txt Generation**: Automatically compiles metadata-rich summaries (`llms.txt`, `llms-full.txt`, and `llms.jsonl`) for AI crawling agents.
 * **100% Privacy Compliance**: No central servers, trackers, or telemetries. Optional cloud LLM API keys (OpenAI, Gemini, Anthropic) are stored locally in the browser's `localStorage`.
+* **🧠 Conversation Memory & Anaphora Resolution**: Retains multi-turn conversation context, resolves pronouns (e.g. "it", "this") back to topics/entities dynamically, and boosts search results using previous message topics.
 
 ---
 
@@ -62,6 +63,35 @@ export default defineConfig({
     ]
   }
 });
+```
+
+### 3. Advanced Configuration (Conversation Memory & Custom Context)
+
+You can enable full conversation history depth, domain-specific entity extraction, memory-aware search boosting, and persistent system contexts:
+
+```typescript
+DepthIndex({
+  searchMode: 'hybrid',
+  synthesis: {
+    conversationMemoryDepth: 5,        // Include last 5 messages for follow-ups
+    customEntities: ['DepthIndex', 'VitePress', 'Algolia'], // Domain keywords
+    followUpDetection: {
+      sensitivity: 'normal',
+      sessionTimeout: 300000          // 5 minutes inactive timeout
+    }
+  },
+  search: {
+    conversationBoost: true,          // Boost search results matching context topics
+    boostFactor: 1.5
+  },
+  ai: {
+    systemContext: `
+      IMPORTANT CONTEXT:
+      - This documentation is for MyProduct v2.0
+      - Always mention the --help flag when relevant
+    `
+  }
+})
 ```
 
 ---

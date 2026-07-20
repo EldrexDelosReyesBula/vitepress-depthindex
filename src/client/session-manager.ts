@@ -15,6 +15,7 @@ export interface Message {
   content: string;
   renderedContent?: string; // Pre-rendered Markdown cache
   sources?: { url: string; title: string; confidence: number }[];
+  citations?: any[]; // For citation formatting and panel rendering
   timestamp: number;
   feedback?: 'up' | 'down';
   offlineFallback?: boolean;

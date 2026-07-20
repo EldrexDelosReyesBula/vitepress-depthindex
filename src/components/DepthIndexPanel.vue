@@ -26,23 +26,24 @@
             <slot name="header-actions">
               <!-- New chat -->
               <button @click="newSession" :title="t('panel.newChat')" class="hbtn">
-                <i class="fa-solid fa-plus"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               </button>
               <!-- History -->
               <button @click="toggleHistory" :title="t('panel.history')" class="hbtn" :class="{ active: showHistory }">
-                <i class="fa-solid fa-clock-rotate-left"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               </button>
               <!-- Cloud settings -->
               <button v-if="showSettingsButton" @click="openCloudConfig" :title="t('panel.settings')" class="hbtn">
-                <i class="fa-solid fa-gear"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
               </button>
               <!-- Expand -->
               <button @click="toggleSize" :title="t('panel.expand')" class="hbtn">
-                <i :class="panelSize === 'fullscreen' || panelSize === 'large' ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
+                <svg v-if="panelSize === 'fullscreen' || panelSize === 'large'" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
               </button>
               <!-- Close -->
               <button @click="emit('close')" :title="t('panel.close')" class="hbtn hbtn-close">
-                <i class="fa-solid fa-xmark"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </slot>
           </div>
@@ -79,6 +80,7 @@
       <!-- Settings Panel Overlay -->
       <CloudConfigPanel
         v-if="showCloudConfig"
+        :options="options"
         @close="showCloudConfig = false"
         @config-updated="handleConfigUpdated"
       />
@@ -87,7 +89,7 @@
       <div class="messages-container" ref="messagesContainerRef" @click="handleLinkClick">
         <!-- Page Context Banner -->
         <div v-if="pageContext" class="page-context-banner">
-          <i class="fa-solid fa-file-lines ctx-icon" aria-hidden="true"></i>
+          <svg class="ctx-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--vp-c-brand, #3eaf7c); flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           <span class="context-text">
             {{ t('panel.viewing') }}: 
             <a :href="resolveSourceUrl(pageContext.url)" class="context-link">
@@ -180,23 +182,23 @@
                   </div>
                 </div>
 
-                <!-- Message Actions -->
+                 <!-- Message Actions -->
                 <div v-if="msg.role === 'assistant' && !msg.loading" class="message-actions">
                   <!-- Thumbs up -->
                   <button @click="giveFeedback(msg.id, 'up')" :class="['act-btn', { active: msg.feedback === 'up' }]" :title="t('feedback.helpful')">
-                    <i class="fa-regular fa-thumbs-up"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
                   </button>
                   <!-- Thumbs down -->
                   <button @click="giveFeedback(msg.id, 'down')" :class="['act-btn', { active: msg.feedback === 'down' }]" :title="t('feedback.notHelpful')">
-                    <i class="fa-regular fa-thumbs-down"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
                   </button>
                   <!-- Copy -->
                   <button @click="copyMessage(msg.content)" class="act-btn" :title="t('feedback.copy')">
-                    <i class="fa-regular fa-copy"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                   </button>
                   <!-- Delete -->
                   <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
-                    <i class="fa-regular fa-trash-can"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                   </button>
                 </div>
 
@@ -204,15 +206,15 @@
                 <div v-if="msg.role === 'user' && editingMessageId !== msg.id && !loading" class="message-actions user-actions">
                   <!-- Edit -->
                   <button @click="startEditing(msg)" class="act-btn" :title="t('action.edit')">
-                    <i class="fa-regular fa-pen-to-square"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                   </button>
                   <!-- Resend -->
                   <button @click="resendMessage(msg)" class="act-btn" :title="t('action.resend')">
-                    <i class="fa-solid fa-rotate-right"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                   </button>
                   <!-- Delete -->
                   <button @click="deleteMessage(msg)" class="act-btn" :title="t('action.delete')">
-                    <i class="fa-regular fa-trash-can"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                   </button>
                 </div>
               </div>
@@ -257,7 +259,7 @@
         <div class="panel-input-area">
           <!-- Subscription Gating Block -->
           <div v-if="subscriptionGated" class="subscription-gating-banner" style="padding: 16px; text-align: center; border-top: 1px solid var(--di-border);">
-            <i class="fa-solid fa-lock gating-icon" style="font-size: 20px; color: var(--di-text-secondary); margin-bottom: 8px;"></i>
+            <svg class="gating-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--di-text-secondary); margin-bottom: 8px; display: inline-block;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             <p class="gating-msg" style="font-size: 13px; color: var(--di-text-secondary); margin-bottom: 12px;">{{ props.options?.usageLimits?.subscription?.upgradeMessage || 'Upgrade to Premium for unlimited AI-powered documentation search.' }}</p>
             <a v-if="props.options?.usageLimits?.subscription?.upgradeUrl" :href="props.options?.usageLimits?.subscription?.upgradeUrl" class="gating-btn" target="_blank" style="display: inline-block; padding: 6px 16px; background: var(--di-primary); color: white; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">Upgrade Now</a>
           </div>
@@ -275,7 +277,7 @@
                   @keydown.enter.exact.prevent="submitQuery"
                 ></textarea>
                 <button class="send-btn" :disabled="!query.trim() || loading" @click="submitQuery" :title="t('panel.send')">
-                  <i class="fa-solid fa-paper-plane"></i>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="fill: currentColor;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
               </div>
             </slot>
@@ -302,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { DepthIndexEngine } from '../client/search-engine.js';
 import { PersonalizationEngine } from '../client/personalization.js';
 import { SessionManager, ChatSession, Message } from '../client/session-manager.js';
@@ -317,6 +319,7 @@ import { PIIDetector } from '../client/pii-detector.js';
 import { loadEnvConfig } from '../config/env.js';
 import { queryCloudAPI, CloudAdapter } from '../client/cloud-adapter.js';
 import { AnswerSynthesizer } from '../client/answer-synthesizer.js';
+import { ConversationMemory } from '../client/conversation-memory.js';
 import { ICONS } from '../client/icons.js';
 import { SiteContextEngine } from '../client/site-context.js';
 import { SiteIntelligence } from '../client/site-intelligence.js';
@@ -501,6 +504,7 @@ const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const sessionManager = new SessionManager();
 const conversationHandler = new ConversationHandler();
 const pageContextProvider = new PageContextProvider(props.engine);
+const cloudAdapter = new CloudAdapter();
 const pageFeatures = new PageFeatures(props.engine, cloudAdapter, () => ({
   provider: cloudProvider.value,
   apiKey: apiKey.value,
@@ -511,12 +515,19 @@ const contentRenderer = new ContentRenderer();
 const performanceOptimizer = new PerformanceOptimizer(props.engine);
 const securityManager = new SecurityManager();
 const piiDetector = new PIIDetector();
-const cloudAdapter = new CloudAdapter();
 const errorHandler = new ErrorHandler();
 const siteContextEngine = new SiteContextEngine();
 const siteIntelligence = new SiteIntelligence();
 const intentEngine = new IntentEngine();
 const suggestionEngine = new SuggestionEngine();
+const conversationMemory = new ConversationMemory({
+  maxEntries: props.options?.synthesis?.conversationMemoryDepth || 10,
+  sessionTimeout: props.options?.synthesis?.followUpDetection?.sessionTimeout || 300000,
+  customEntities: props.options?.synthesis?.customEntities || []
+});
+if (typeof window !== 'undefined') {
+  (window as any).__DEPTHINDEX_MEMORY__ = conversationMemory;
+}
 
 // SDK registry & i18n initialization
 const registry = (typeof window !== 'undefined' && (window as any).depthIndexRegistry) || new PluginRegistry();
@@ -695,6 +706,22 @@ onMounted(async () => {
   // Set up page context detection
   updatePageContext();
   setInterval(updatePageContext, 2000);
+
+  // Listen for transferred queries from search bar when panel is open
+  window.addEventListener('depthindex:open-panel', handleTransferredQuery);
+});
+
+const handleTransferredQuery = (event: Event) => {
+  const customEvent = event as CustomEvent;
+  const { query: q, source } = customEvent.detail || {};
+  if (q && source === 'search-bar') {
+    query.value = q;
+    submitQuery();
+  }
+};
+
+onUnmounted(() => {
+  window.removeEventListener('depthindex:open-panel', handleTransferredQuery);
 });
 
 // Watch messages for Mermaid renderings
@@ -989,9 +1016,19 @@ async function deleteMessage(msg: any) {
 }
 
 async function generateAssistantResponse(queryToRun: string) {
+  // Resolve anaphora
+  const resolvedQuery = conversationMemory.resolveAnaphora(queryToRun);
+  
+  // Add user query to conversation memory
+  conversationMemory.add({
+    role: 'user',
+    content: queryToRun,
+    timestamp: Date.now()
+  });
+
   // 1. Intent Detection
-  const intentCheck = conversationHandler.detectIntent(queryToRun);
-  const nluIntent = intentEngine.detectIntent(queryToRun, messages.value);
+  const intentCheck = conversationHandler.detectIntent(resolvedQuery);
+  const nluIntent = intentEngine.detectIntent(resolvedQuery, messages.value);
   console.log('[DepthIndex] NLU parsed intent:', nluIntent);
   
   // 2. Add Assistant Placeholder (with Loading State active)
@@ -1015,6 +1052,13 @@ async function generateAssistantResponse(queryToRun: string) {
       await sleep(1000);
       const reply = await conversationHandler.handleConversational(intentCheck.intent);
       assistantMsg.content = reply;
+      
+      // Save assistant response to memory
+      conversationMemory.add({
+        role: 'assistant',
+        content: reply,
+        timestamp: Date.now()
+      });
     } else {
       // Search engine response
       loadingStage.value = 'searching';
@@ -1028,7 +1072,22 @@ async function generateAssistantResponse(queryToRun: string) {
         }
       }, 150);
 
-      const searchResults = await performanceOptimizer.search(queryToRun, 5);
+      const searchResults = await performanceOptimizer.search(resolvedQuery, 5);
+      
+      // Apply memory-aware search boosting
+      const currentTopic = conversationMemory.getCurrentTopic();
+      if (currentTopic && props.options?.search?.conversationBoost !== false) {
+        const boostFactor = props.options?.search?.boostFactor || 1.5;
+        for (const res of searchResults) {
+          const content = (res.chunk.content || '').toLowerCase();
+          const title = (res.chunk.pageTitle || '').toLowerCase();
+          const heading = (res.chunk.heading || '').toLowerCase();
+          if (content.includes(currentTopic) || title.includes(currentTopic) || heading.includes(currentTopic)) {
+            res.score = Math.min(1.0, res.score * boostFactor);
+          }
+        }
+      }
+
       clearInterval(progressInterval);
       loadingProgress.value = 100;
       loadingScannedPages.value = searchResults.length;
@@ -1076,26 +1135,33 @@ async function generateAssistantResponse(queryToRun: string) {
 
       if (isCloud) {
         try {
+          const systemContext = props.options?.ai?.systemContext || '';
           const cloudConfig = {
             provider: cloudProvider.value as any,
             apiKey: apiKey.value,
             model: modelName.value || '',
-            messages: [],
+            messages: [] as any[],
             personality: props.options?.ai?.personality
           };
-          synthesizedResponse = await synthesizer.synthesize(queryToRun, mappedResults, {
+          if (systemContext) {
+            cloudConfig.messages.push({
+              role: 'system',
+              content: systemContext
+            });
+          }
+          synthesizedResponse = await synthesizer.synthesize(resolvedQuery, mappedResults, {
             mode: 'cloud',
             cloudAdapter,
             cloudConfig
           }, onProgress);
         } catch (err: any) {
           console.warn('[DepthIndex] Cloud query failed, falling back to local indexing:', err);
-          synthesizedResponse = await synthesizer.synthesize(queryToRun, mappedResults, { mode: 'local' }, onProgress);
+          synthesizedResponse = await synthesizer.synthesize(resolvedQuery, mappedResults, { mode: 'local' }, onProgress);
           isFallback = true;
           errorHandler.handleError(err, ErrorCategory.CLOUD_API, ErrorSeverity.WARNING);
         }
       } else {
-        synthesizedResponse = await synthesizer.synthesize(queryToRun, mappedResults, { mode: 'local' }, onProgress);
+        synthesizedResponse = await synthesizer.synthesize(resolvedQuery, mappedResults, { mode: 'local' }, onProgress);
         if (searchMode.value !== 'on-device' && !isOnline) {
           isFallback = true;
         }
@@ -1107,7 +1173,7 @@ async function generateAssistantResponse(queryToRun: string) {
       finalContent = enforceResponseLimits(finalContent, isCloud);
 
       // Record token usage
-      const estimatedPromptTokens = Math.ceil((queryToRun.length + (searchResults.map(r => r.chunk.content).join(' ').length)) / 4);
+      const estimatedPromptTokens = Math.ceil((resolvedQuery.length + (searchResults.map(r => r.chunk.content).join(' ').length)) / 4);
       const estimatedResponseTokens = Math.ceil(finalContent.length / 4);
       recordTokenUsage(estimatedPromptTokens + estimatedResponseTokens);
 
@@ -1156,9 +1222,16 @@ async function generateAssistantResponse(queryToRun: string) {
       assistantMsg.sources = sourcesList;
       assistantMsg.citations = synthesizedResponse.citations;
       assistantMsg.offlineFallback = isFallback;
+      
+      // Save assistant response to memory
+      conversationMemory.add({
+        role: 'assistant',
+        content: finalContent,
+        timestamp: Date.now()
+      });
 
       if (props.personalization) {
-        props.personalization.recordQuery(queryToRun, searchResults);
+        props.personalization.recordQuery(resolvedQuery, searchResults);
       }
     }
   } catch (err: any) {
@@ -1695,9 +1768,24 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 
 /* ─── Messages ────────────────────────────────────────────── */
-.message-wrapper { display: flex; width: 100%; }
+.message-wrapper {
+  display: flex;
+  width: 100%;
+  animation: diMessageSlideIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
 .message-wrapper.user      { justify-content: flex-end; }
 .message-wrapper.assistant { justify-content: flex-start; }
+
+@keyframes diMessageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
 .message-bubble {
   max-width: 88%; padding: 9px 13px;
@@ -2032,19 +2120,19 @@ a.source-pill:hover { border-color: var(--vp-c-brand, #3eaf7c); color: var(--vp-
 
 /* ─── Transitions ─────────────────────────────────────────── */
 .panel-slide-enter-active,
-.panel-slide-leave-active { transition: all 0.25s cubic-bezier(0.16,1,0.3,1); }
+.panel-slide-leave-active { transition: all 0.38s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .panel-slide-enter-from,
-.panel-slide-leave-to { opacity: 0; transform: translateY(14px) scale(0.97); }
+.panel-slide-leave-to { opacity: 0; transform: translateY(24px) scale(0.96); }
 
 .slide-enter-active,
-.slide-leave-active { transition: transform 0.22s ease, opacity 0.18s ease; }
+.slide-leave-active { transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease; }
 .slide-enter-from,
-.slide-leave-to { opacity: 0; transform: translateX(-12px); }
+.slide-leave-to { opacity: 0; transform: translateX(-16px); }
 
 .slide-up-enter-active,
-.slide-up-leave-active { transition: all 0.18s ease; }
+.slide-up-leave-active { transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .slide-up-enter-from,
-.slide-up-leave-to { opacity: 0; transform: translateY(8px); }
+.slide-up-leave-to { opacity: 0; transform: translateY(12px); }
 
 /* ─── Mobile fullscreen ───────────────────────────────────── */
 @media (max-width: 480px) {

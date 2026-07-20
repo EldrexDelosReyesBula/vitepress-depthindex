@@ -169,6 +169,8 @@ export class TranslationEngine {
       'feedback.copy': 'actions.copy',
       'settings.mode.local.name': 'settings.modes.local',
       'settings.mode.local.desc': 'settings.modes.localDescription',
+      'settings.mode.on-device.name': 'settings.modes.local',
+      'settings.mode.on-device.desc': 'settings.modes.localDescription',
       'settings.mode.hybrid.name': 'settings.modes.hybrid',
       'settings.mode.hybrid.desc': 'settings.modes.hybridDescription',
       'settings.mode.cloud.name': 'settings.modes.cloud',

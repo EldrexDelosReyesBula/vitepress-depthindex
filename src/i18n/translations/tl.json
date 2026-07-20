@@ -88,8 +88,10 @@
   
   "settings": {
     "title": "Mga Setting",
+    "subtitle": "I-configure ang iyong AI assistant at mga kagustuhan sa paghahanap",
     "language": "Wika",
     "languageDescription": "Pumili ng gustong wika para sa interface at mga sagot",
+    "info": "Ang mga setting na ito ay naka-save nang lokal sa iyong browser at nalalapat lamang sa device na ito.",
     "searchMode": "Paraan ng Paghahanap",
     "searchModeDescription": "Pumili kung paano bubuuin ang mga sagot",
     "modes": {
@@ -108,7 +110,8 @@
     "saveConfiguration": "I-save ang Configuration",
     "resetDefaults": "Ibalik sa Default",
     "clearHistory": "Burahin ang Kasaysayan",
-    "clearHistoryConfirm": "Sigurado ka bang gusto mong burahin ang lahat ng kasaysayan ng usapan?"
+    "clearHistoryConfirm": "Sigurado ka bang gusto mong burahin ang lahat ng kasaysayan ng usapan?",
+    "storageIndicator": "Naka-save sa lokal na storage"
   },
   
   "errors": {

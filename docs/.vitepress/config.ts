@@ -46,17 +46,18 @@ export default defineConfig({
         items: [
           { text: 'How It Works', link: '/guide/how-it-works' },
           { text: 'Search Modes', link: '/guide/search-modes' },
-          { text: 'Answer Synthesis', link: '/guide/answer-synthesis' },
-          { text: 'Search Bar Integration', link: '/guide/search-bar' },
-        ]
-      },
-      {
-        text: 'Search Modes',
-        collapsed: true,
-        items: [
-          { text: 'Search Modes Overview', link: '/guide/search-modes' },
           { text: 'Switching Between Modes', link: '/guide/switching-modes' },
           { text: 'Cloud-Only Mode', link: '/guide/cloud-only-mode' },
+          { text: 'Answer Synthesis', link: '/guide/answer-synthesis' },
+        ]
+      },
+      // ─── Search Bar ───
+      {
+        text: 'Search Bar',
+        collapsed: true,
+        items: [
+          { text: 'Search Bar Integration', link: '/guide/search-bar' },
+          { text: 'Overview Mode', link: '/guide/search-overview' },
         ]
       },
       // ─── Features ───
@@ -86,6 +87,9 @@ export default defineConfig({
         text: 'Advanced',
         collapsed: true,
         items: [
+          { text: 'Conversation Memory', link: '/guide/conversation-memory' },
+          { text: 'Advanced Tips & Tricks', link: '/guide/advanced-tips' },
+          { text: 'Deployment Guide', link: '/guide/deployment' },
           { text: 'Plugin SDK', link: '/guide/plugin-sdk' },
           { text: 'Best Practices', link: '/guide/best-practices' },
           { text: 'Limitations & Use Cases', link: '/guide/limitations' },
@@ -130,6 +134,10 @@ export default defineConfig({
           { text: 'Custom branding & logo', link: '/examples/custom-logo' },
           { text: 'Subscription docs portal', link: '/examples/subscription-docs' },
           { text: 'AI personality presets', link: '/examples/personality-preset' },
+          { text: 'Search Overview Mode', link: '/examples/search-overview' },
+          { text: 'Ask AI Button Mode', link: '/examples/search-button' },
+          { text: 'Conversation Memory', link: '/examples/conversation-memory' },
+          { text: 'Custom Entities', link: '/examples/custom-entities' },
         ]
       },
       {
@@ -156,6 +164,7 @@ export default defineConfig({
         text: 'Community',
         collapsed: true,
         items: [
+          { text: 'Showcase', link: '/community/showcase' },
           { text: 'Contributing', link: '/community/contributing' },
           { text: 'Contribute Translations', link: '/community/translate' },
           { text: 'Code of Conduct', link: '/community/code-of-conduct' },
@@ -208,14 +217,13 @@ export default defineConfig({
           { text: '19. Self-Host Docs AI', link: '/blog/self-hosted-ai' },
           { text: '20. Build Your First Plugin', link: '/blog/first-plugin' },
           { text: '21. Track Google Analytics', link: '/blog/google-analytics-integration' },
-          { text: '22. Open Source AI Docs', link: '/blog/open-source-case-study' },
-          { text: '23. Gated Subscription Portal', link: '/blog/subscription-docs-portal' },
-          { text: '24. Secure Internal Enterprise Docs', link: '/blog/internal-enterprise-docs' },
-          { text: '25. DepthIndex vs Algolia vs Inkeep', link: '/blog/depthindex-vs-algolia-vs-inkeep' },
-          { text: '26. On-Device vs Cloud Search', link: '/blog/on-device-vs-cloud-search' },
-          { text: '27. Complete Config Guide', link: '/blog/complete-config-guide' },
-          { text: '28. Deploy to Vercel & Netlify', link: '/blog/deploy-vercel-netlify' },
-          { text: '29. Scale for 1,000+ Pages', link: '/blog/scale-large-docs' },
+          { text: '22. Gated Subscription Portal', link: '/blog/subscription-docs-portal' },
+          { text: '23. Secure Internal Enterprise Docs', link: '/blog/internal-enterprise-docs' },
+          { text: '24. DepthIndex vs Algolia vs Inkeep', link: '/blog/depthindex-vs-algolia-vs-inkeep' },
+          { text: '25. On-Device vs Cloud Search', link: '/blog/on-device-vs-cloud-search' },
+          { text: '26. Complete Config Guide', link: '/blog/complete-config-guide' },
+          { text: '27. Deploy to Vercel & Netlify', link: '/blog/deploy-vercel-netlify' },
+          { text: '28. Scale for 1,000+ Pages', link: '/blog/scale-large-docs' },
         ]
       },
     ],

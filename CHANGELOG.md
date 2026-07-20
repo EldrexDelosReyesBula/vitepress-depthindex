@@ -3,6 +3,18 @@
 All notable changes to the **VitePress DepthIndex** project will be documented in this file.
 
 ---
+## [1.2.1] - 2026-07-20
+
+### Added
+- **Search Bar AI Overview Mode**: Automatic client-side extraction, sanitization of code blocks, tables, diagrams, video links, HTML tags, and sentence-boundary truncation.
+- **Search Bar "Ask AI" Button Mode**: Absolute-positioned action button injected on the search input, enabling direct redirection of queries to the full chat panel.
+- **Extended Documentation Suite**: Added 9 new documentation pages under `docs/` covering guide topics (Search Overview, Conversation Memory, Advanced Tips, Deployment), configuration examples (Search Overview, Search Button, Conversation Memory, Custom Entities), and Community Showcase.
+- **Tagalog Translations**: Localized settings subtitles, information messages, and storage indicators.
+
+### Fixed
+- **Settings Panel Translation Mappings**: Fixed missing translation key names (`subtitle`, `info`, `storageIndicator`) and mapped `on-device` fallback to local translation values in English (`en`) and Tagalog (`tl`).
+- **Typescript Compilation Errors**: Removed unsupported properties from `synthesize` call in client search bar integration.
+
 ## [1.2.0] - 2026-07-19
 
 ### Added
@@ -11,12 +23,18 @@ All notable changes to the **VitePress DepthIndex** project will be documented i
 - **DOM-Clean Page Summarization & Discussion** (`src/client/page-features.ts`) — extracts page text while discarding SVGs, code blocks, tables, and Mermaid flow diagrams to avoid raw text leakage during summaries and contextual AI page discussions.
 - **Version Integrity & Security** (`src/client/version-check.ts`) — checks manual-only updates and verifies SHA-256 signatures of index buffers.
 - **AI Answer Card Dismissal** — added a close `[x]` button inside the search AI answer card that stores the dismissed state, respecting the choice during active typing.
+- **Conversation Memory & Anaphora Resolution** (`src/client/conversation-memory.ts`) — records multi-turn chat history with dynamic entity/topic extraction, intent classification, and backward-scanning pronoun resolution. Boosts search scores for documents matching the current discussion topic.
+- **System Context Injection** — supports `ai.systemContext` configuration to supply LLMs with persistent, custom background information.
 
 ### Fixed
 - Decoupled panel theme selectors from global VitePress variables and mapped them to dark-mode-aware `--di-` tokens.
 - Addressed table/diagram line leakage into local synthesized answers.
 - Scoped search modal dark mode overrides to `.dark` globally to match VitePress's theme class configuration.
 - Enforced list-style-type resets inside message content bubbles to prevent global list resets from breaking layout formatting.
+- Resolved Vue variable block-scoping instantiation order conflicts inside `DepthIndexPanel.vue`.
+- Fixed VitePress version compatibility checks and service worker support verification during resolved config validation.
+- Standardized IndexedDB message storage types by adding `citations` to `Message` definitions.
+- Trimmed test environment `SerializedIndex` mocks to align with core type boundaries.
 
 ---
 
