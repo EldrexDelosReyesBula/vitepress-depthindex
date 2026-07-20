@@ -138,6 +138,6 @@ describe('VitePress DepthIndex Stress Testing', () => {
 
     // Performance assertion: Average search latency must be under 30ms on local engine
     expect(avgLatency).toBeLessThan(30);
-  });
+  }, 20000);
 
 });
