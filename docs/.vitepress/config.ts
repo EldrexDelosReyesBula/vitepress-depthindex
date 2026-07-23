@@ -8,7 +8,41 @@ export default defineConfig({
   cleanUrls: true,
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/vitepress-depthindex-official-logo.svg' }]
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/vitepress-depthindex-official-logo.svg' }],
+    ['style', {}, `
+      .VPHero {
+        padding: 48px 24px 24px !important;
+      }
+      .VPHero .name {
+        font-weight: 800 !important;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        display: inline-block !important;
+        margin-bottom: 8px !important;
+      }
+      .VPHero .text {
+        font-size: 26px !important;
+        font-weight: 700 !important;
+        color: var(--vp-c-text-1) !important;
+        margin-bottom: 14px !important;
+        line-height: 1.3 !important;
+      }
+      .VPHero .tagline {
+        font-size: 16px !important;
+        color: var(--vp-c-text-2) !important;
+        max-width: 680px !important;
+        margin: 0 auto 24px !important;
+      }
+      .VPFeatures {
+        padding: 32px 24px 48px !important;
+      }
+      .VPHome .vp-doc {
+        padding-top: 36px !important;
+        border-top: 1px solid var(--vp-c-divider) !important;
+        margin-top: 24px !important;
+      }
+    `]
   ],
 
   vite: {

@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: DepthIndex
-  text: On-Device Search & AI
-  tagline: "Offline-first, zero-latency hybrid search and conversational AI for VitePress documentation."
+  name: VitePress DepthIndex
+  text: Offline-First AI Search Engine
+  tagline: "Zero-latency, on-device hybrid search and conversational AI for VitePress documentation."
   image:
     src: /vitepress-depthindex-official-logo.svg
     alt: DepthIndex Logo
@@ -30,11 +30,6 @@ features:
     title: Privacy-First
     details: Zero analytics or external logging. Personalization data and optional API keys are kept strictly in local storage.
 ---
-
-
-# VitePress DepthIndex
-
-> On-device intelligence layer for VitePress documentation.
 
 ## What is DepthIndex?
 VitePress DepthIndex is a production-grade, offline-first search and reasoning engine designed to turn standard documentation sites into AI-native experiences. Operating completely inside the user's browser, it combines BM25 exact keyword matching with sparse TF-IDF Cosine similarity vector modeling to enable fast queries without relying on expensive server-side databases or subscription-based paywalls. It runs entirely local search and synthesis, with optional hooks to leverage cloud-based large language models (LLMs) when needed.
