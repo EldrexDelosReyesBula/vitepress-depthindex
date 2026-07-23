@@ -8,6 +8,7 @@ export class PerformanceOptimizer {
   private fallbackEngine: DepthIndexEngine | null = null;
   private workerLoading = false;
   private workerLoaded = false;
+  private workerFailed = false;
   private pendingResolvers: Map<string, ((value: SearchResult[]) => void)[]> = new Map();
 
   private deviceProfile: 'low' | 'medium' | 'high' = 'medium';
@@ -25,6 +26,10 @@ export class PerformanceOptimizer {
   async init(indexUrl: string, fallbackEngine: DepthIndexEngine): Promise<void> {
     this.fallbackEngine = fallbackEngine;
     if (typeof window === 'undefined' || typeof Worker === 'undefined') {
+      return;
+    }
+
+    if (this.workerLoaded || this.workerLoading || this.workerFailed) {
       return;
     }
 
@@ -72,6 +77,8 @@ export class PerformanceOptimizer {
           this.webWorker.terminate();
           this.webWorker = null;
         }
+        this.workerFailed = true;
+        this.workerLoading = false;
         throw err;
       });
 
