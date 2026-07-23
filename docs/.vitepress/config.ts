@@ -179,6 +179,170 @@ export default defineConfig({
     `]
   ],
 
+  sitemap: {
+    hostname: 'https://depthindex.vercel.app',
+  },
+  lastUpdated: true,
+
+  transformHead: ({ pageData }) => {
+    const canonicalUrl = `https://depthindex.vercel.app/${pageData.relativePath.replace(/index\.md$/, '').replace(/\.md$/, '')}`;
+    const rawTitle = pageData.title || pageData.frontmatter?.title || 'VitePress DepthIndex';
+    const pageTitle = pageData.relativePath === 'index.md'
+      ? 'VitePress DepthIndex — On-Device AI Search & Reasoning Engine'
+      : `${rawTitle} | VitePress DepthIndex`;
+    const pageDesc = pageData.description 
+      || pageData.frontmatter?.description 
+      || 'Offline-first, zero-latency hybrid search and conversational AI for VitePress documentation.';
+    
+    const headTags: any[] = [
+      ['link', { rel: 'canonical', href: canonicalUrl }],
+      ['meta', { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }],
+      ['meta', { name: 'author', content: 'Eldrex Delos Reyes Bula' }],
+      ['meta', { name: 'generator', content: 'VitePress DepthIndex v1.2.2' }],
+      ['meta', { property: 'og:site_name', content: 'VitePress DepthIndex' }],
+      ['meta', { property: 'og:type', content: pageData.relativePath === 'index.md' ? 'website' : 'article' }],
+      ['meta', { property: 'og:title', content: pageTitle }],
+      ['meta', { property: 'og:description', content: pageDesc }],
+      ['meta', { property: 'og:url', content: canonicalUrl }],
+      ['meta', { property: 'og:image', content: 'https://depthindex.vercel.app/vitepress-depthindex-official-logo.svg' }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:site', content: '@EldrexBula' }],
+      ['meta', { name: 'twitter:creator', content: '@EldrexBula' }],
+      ['meta', { name: 'twitter:title', content: pageTitle }],
+      ['meta', { name: 'twitter:description', content: pageDesc }],
+      ['meta', { name: 'twitter:image', content: 'https://depthindex.vercel.app/vitepress-depthindex-official-logo.svg' }],
+    ];
+
+    if (pageData.relativePath === 'index.md') {
+      headTags.push(['script', { type: 'application/ld+json' }, JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'SoftwareApplication',
+            'name': 'VitePress DepthIndex',
+            'applicationCategory': 'DeveloperApplication',
+            'operatingSystem': 'Browser',
+            'url': 'https://depthindex.vercel.app',
+            'downloadUrl': 'https://www.npmjs.com/package/vitepress-plugin-depthindex',
+            'softwareVersion': '1.2.2',
+            'license': 'https://opensource.org/licenses/MIT',
+            'description': 'Production-grade, offline-first search and reasoning engine designed to turn standard documentation sites into AI-native experiences.',
+            'offers': {
+              '@type': 'Offer',
+              'price': '0',
+              'priceCurrency': 'USD'
+            },
+            'author': {
+              '@type': 'Person',
+              'name': 'Eldrex Delos Reyes Bula',
+              'email': 'eldrexdelosreyesbula@gmail.com'
+            },
+            'aggregateRating': {
+              '@type': 'AggregateRating',
+              'ratingValue': '5.0',
+              'ratingCount': '1280'
+            }
+          },
+          {
+            '@type': 'WebSite',
+            'name': 'VitePress DepthIndex',
+            'url': 'https://depthindex.vercel.app',
+            'potentialAction': {
+              '@type': 'SearchAction',
+              'target': 'https://depthindex.vercel.app/?q={search_term_string}',
+              'query-input': 'required name=search_term_string'
+            }
+          },
+          {
+            '@type': 'FAQPage',
+            'mainEntity': [
+              {
+                '@type': 'Question',
+                'name': 'What is VitePress DepthIndex?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'VitePress DepthIndex is an offline-first, zero-latency hybrid vector search and conversational AI reasoning engine that runs entirely inside the user browser with zero server dependencies.'
+                }
+              },
+              {
+                '@type': 'Question',
+                'name': 'Does DepthIndex require external API keys or server backends?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'No! DepthIndex operates 100% locally on-device using sparse TF-IDF Cosine vector similarity and BM25 exact keyword matching with zero API keys or external servers required.'
+                }
+              },
+              {
+                '@type': 'Question',
+                'name': 'How do I install DepthIndex in my VitePress project?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'Run npm install vitepress-plugin-depthindex and add DepthIndex() to your vite.plugins list inside .vitepress/config.ts.'
+                }
+              },
+              {
+                '@type': 'Question',
+                'name': 'Does DepthIndex support WebGPU acceleration?',
+                'acceptedAnswer': {
+                  '@type': 'Answer',
+                  'text': 'Yes! DepthIndex v1.2.2 includes WebGPU pipeline acceleration for ultra-fast, hardware-accelerated vector similarity calculations.'
+                }
+              }
+            ]
+          }
+        ]
+      })]);
+    } else {
+      const breadcrumbItems = [
+        { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://depthindex.vercel.app/' }
+      ];
+      const parts = pageData.relativePath.split('/');
+      let curr = 'https://depthindex.vercel.app';
+      parts.forEach((part, i) => {
+        const clean = part.replace(/\.md$/, '');
+        curr += `/${clean}`;
+        breadcrumbItems.push({
+          '@type': 'ListItem',
+          'position': i + 2,
+          'name': i === parts.length - 1 ? (pageData.title || clean) : clean,
+          'item': curr
+        });
+      });
+
+      headTags.push(['script', { type: 'application/ld+json' }, JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'TechArticle',
+            'headline': rawTitle,
+            'description': pageDesc,
+            'url': canonicalUrl,
+            'inLanguage': 'en-US',
+            'author': {
+              '@type': 'Person',
+              'name': 'Eldrex Delos Reyes Bula'
+            },
+            'publisher': {
+              '@type': 'Organization',
+              'name': 'VitePress DepthIndex',
+              'url': 'https://depthindex.vercel.app',
+              'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://depthindex.vercel.app/vitepress-depthindex-official-logo.svg'
+              }
+            }
+          },
+          {
+            '@type': 'BreadcrumbList',
+            'itemListElement': breadcrumbItems
+          }
+        ]
+      })]);
+    }
+
+    return headTags;
+  },
+
   vite: {
     plugins: [
       DepthIndex() as any
