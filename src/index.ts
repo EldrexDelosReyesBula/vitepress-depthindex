@@ -56,6 +56,13 @@ const virtualModuleId = 'virtual:depthindex-client';
 const resolvedVirtualModuleId = '\0' + virtualModuleId;
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
+  gpu: {
+    enabled: true,
+    maxMemoryMB: 256,
+    accelerateSearch: true,
+    accelerateEmbeddings: true,
+    fallback: 'silent',
+  },
   searchMode: 'on-device',
   placement: {
     mode: 'all',
@@ -80,12 +87,38 @@ const DEFAULT_OPTIONS: DepthIndexOptions = {
     defaultSize: 'normal',
     showHistory: true,
     showSettings: true,
+    showDisclaimer: true,
+    disclaimerText: 'AI may respond inaccurately.',
+    disclaimerLink: 'https://depthindex.vercel.app/guide/limitations',
   },
   floatingButton: {
     enabled: true,
     position: 'bottom-right',
     icon: 'fa-solid fa-comment-dots',
     pulse: true,
+  },
+  indexDownload: {
+    strategy: 'full',
+    maxCacheSizeMB: 50,
+    preloadRelatedPages: 2,
+    downloadOnDemand: true,
+    removeDeletedPages: true,
+  },
+  citations: {
+    showInlineCitations: true,
+    showReferencesSection: false,
+    style: 'superscript',
+    maxInlineCitations: 10,
+    showCitationCount: false,
+  },
+  references: {
+    enabled: false,
+    style: 'list',
+    showTitle: true,
+    maxReferences: 10,
+    groupByPage: false,
+    showSnippet: false,
+    title: 'References',
   },
   indexConfig: {
     chunkSize: 500,
@@ -984,3 +1017,11 @@ function crawlMarkdownFiles(dir: string, baseDir: string = dir): string[] {
 
 export { PrivacyFirewall } from './privacy/firewall.js';
 export { TranslationEngine } from './i18n/engine.js';
+export { useDepthIndex } from './client/headless.js';
+export { SubscriptionGate } from './sdk/subscription/gate.js';
+export { WebhookManager } from './sdk/webhooks/types.js';
+export { BannerManager } from './client/banner-manager.js';
+export { GranularIndexLoader } from './client/granular-index-loader.js';
+export { CitationRenderer } from './client/citation-renderer.js';
+
+

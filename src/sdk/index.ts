@@ -410,3 +410,10 @@ export { PrivacyAnalytics } from '../analytics/privacy-analytics.js';
 export { default as TTSExtension } from '../extensions/tts/index.js';
 export { ConversationMemory } from '../client/conversation-memory.js';
 export type { MemoryEntry } from '../client/conversation-memory.js';
+export { SubscriptionGate } from './subscription/gate.js';
+export type { SubscriptionConfig, SubscriptionPlan, SubscriptionUser, PlanFeatures } from './subscription/types.js';
+export { WebhookManager } from './webhooks/types.js';
+export type { WebhookConfig, WebhookEvent, WebhookPayload } from './webhooks/types.js';
+export { useDepthIndex } from '../client/headless.js';
+export type { ChatMessage } from '../client/headless.js';
+

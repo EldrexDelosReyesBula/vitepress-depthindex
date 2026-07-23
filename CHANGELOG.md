@@ -2,7 +2,37 @@
 
 All notable changes to the **VitePress DepthIndex** project will be documented in this file.
 
+## [1.2.2] - 2026-07-23
+
+### Added
+- **WebGPU Acceleration Architecture** (`src/gpu/index.ts`):
+  - Client-side WebGPU acceleration pipeline for embedding generation and vector search with WGSL compute shaders.
+  - Hardware profiling, VRAM allocation manager (`GPUVRAMAllocator`), tensor memory pooling, and silent CPU fallback for non-WebGPU browsers.
+  - Comprehensive unit test suite (`test/gpu.test.ts`) and user guide (`docs/guide/gpu-acceleration.md`).
+
+- **Complete White-Label & Monetization SDK** (`src/sdk/index.ts`):
+  - **Subscription Gate** (`src/sdk/subscription/gate.ts`): Plan-based access control (`free`, `pro`, `enterprise`), usage quota enforcement (daily search limits, AI synthesis limits, max tokens), trial management, and custom tier definitions.
+  - **Webhook Engine** (`src/sdk/webhooks/types.ts`): Event system for `search:executed`, `answer:synthesized`, `user:limit_exceeded`, `subscription:changed`, `feedback:submitted` with HMAC-SHA256 payload signing and exponential backoff retries.
+  - **Banner Manager** (`src/client/banner-manager.ts`): In-panel promotion banners, trial expiration notices, plan upgrade prompts, and custom announcement banners with impression/click tracking and dismiss persistence.
+  - **Customization System**: CSS design tokens (`--di-primary`, `--di-font-family`, `--di-border-radius`), full CSS override support, custom logos/avatars/icons, custom launcher text, custom welcome messages, and prompt key overrides.
+  - Documentation guides added: `docs/guide/white-label.md` and `docs/guide/monetization.md`.
+
+- **Synthesis Accuracy & Safety Overhaul**:
+  - **SafetyGuard** (`src/client/safety-guard.ts`): Intercepts self-harm, suicide, violence, and child safety queries with real, verified crisis resources (988 US, 111/SHOUT UK, Hopeline PH, FindAHelpline international).
+  - **MarkdownCleaner** (`src/client/markdown-cleaner.ts`): Cleans and formats raw LLM markdown outputs, eliminating excessive blank lines, normalizing heading spacing, and deduplicating headings.
+  - **ConfidenceScorer** (`src/client/confidence-scorer.ts`): 4-factor answer scoring (relevance 0-40, term match 0-25, diversity 0-15, quality 0-20) with hallucination/vagueness penalty application.
+  - **AnswerPipeline** (`src/client/answer-pipeline.ts`): Safe answer execution pipeline with query broadening, fallback search strategies, and cascade failure prevention.
+  - **Current-Page-Only Summary** (`src/client/page-features.ts`): Forced DOM extraction from current page prose only for page summaries.
+  - Added customizable `showDisclaimer`, `disclaimerText`, `disclaimerLink`, `reportUrl`, and `feedbackUrl` configurations.
+
+- **Granular Index Control & Reference Customization**:
+  - **GranularIndexLoader** (`src/client/granular-index-loader.ts`): Granular page-level index chunk loader supporting `'full'`, `'lazy'`, `'eager'`, and `'offline'` strategies.
+  - **Index Manifest Update Checking**: Compares build IDs, updates changed page chunks, prunes deleted pages from local device storage for security compliance, and manages LRU cache eviction.
+  - **Citation & Reference Renderer** (`src/client/citation-renderer.ts`): Configurable inline citations (`superscript`, `inline`, `underline`) and reference sections (`list`, `pills`).
+  - Documentation guide added: `docs/guide/index-download.md`.
+
 ---
+
 ## [1.2.1] - 2026-07-20
 
 ### Added

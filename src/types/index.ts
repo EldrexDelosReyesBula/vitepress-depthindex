@@ -211,6 +211,34 @@ export interface PanelConfig {
   title?: string;
   subtitle?: string;
   showSettings?: boolean;
+
+  /**
+   * Show "AI may be inaccurate" disclaimer below input.
+   * @default true
+   */
+  showDisclaimer?: boolean;
+
+  /**
+   * Custom disclaimer text.
+   * @default 'AI may respond inaccurately.'
+   */
+  disclaimerText?: string;
+
+  /**
+   * Custom disclaimer link.
+   * @default 'https://depthindex.vercel.app/guide/limitations'
+   */
+  disclaimerLink?: string;
+
+  /**
+   * Custom URL allowing users to report bugs or errors.
+   */
+  reportUrl?: string;
+
+  /**
+   * Custom URL allowing users to submit feedback or suggestions.
+   */
+  feedbackUrl?: string;
 }
 
 export interface FloatingButtonConfig {
@@ -221,7 +249,184 @@ export interface FloatingButtonConfig {
   label?: string;
 }
 
+import type { SubscriptionConfig } from '../sdk/subscription/types.js';
+import type { WebhookConfig } from '../sdk/webhooks/types.js';
+import type { BannerConfig } from './banner.js';
+
+export type { SubscriptionConfig, SubscriptionPlan, SubscriptionUser, PlanFeatures } from '../sdk/subscription/types.js';
+export type { WebhookConfig, WebhookEvent, WebhookPayload } from '../sdk/webhooks/types.js';
+export type { BannerConfig, BannerType, BannerPosition } from './banner.js';
+
+export interface GPUConfig {
+  /**
+   * Enable GPU acceleration.
+   * Auto-detects WebGPU > WebGL > WASM > CPU.
+   * @default true
+   */
+  enabled?: boolean;
+
+  /**
+   * Maximum GPU memory to use (MB).
+   * @default 256
+   */
+  maxMemoryMB?: number;
+
+  /**
+   * Accelerate vector search operations.
+   * @default true
+   */
+  accelerateSearch?: boolean;
+
+  /**
+   * Accelerate embedding generation.
+   * @default true
+   */
+  accelerateEmbeddings?: boolean;
+
+  /**
+   * Fallback behavior when GPU unavailable.
+   * 'silent' — Use CPU without notice
+   * 'warn'   — Log warning
+   * 'error'  — Throw error
+   * @default 'silent'
+   */
+  fallback?: 'silent' | 'warn' | 'error';
+}
+
+export interface IndexDownloadConfig {
+  /**
+   * Download strategy for search index.
+   * 'full'    — Download entire index on first visit (default, best for small docs)
+   * 'lazy'    — Download only pages the user visits or AI needs
+   * 'eager'   — Download visited pages + preload related pages
+   * 'offline' — Download everything for full offline use
+   * @default 'full'
+   */
+  strategy?: 'full' | 'lazy' | 'eager' | 'offline';
+
+  /**
+   * Maximum cached index size (MB).
+   * Older chunks are evicted when exceeded.
+   * @default 50
+   */
+  maxCacheSizeMB?: number;
+
+  /**
+   * Preload related pages when visiting a page.
+   * Only applies to 'eager' strategy.
+   * @default 2
+   */
+  preloadRelatedPages?: number;
+
+  /**
+   * Auto-download pages when AI search needs them.
+   * @default true
+   */
+  downloadOnDemand?: boolean;
+
+  /**
+   * Remove deleted pages from device on update.
+   * CRITICAL for security.
+   * @default true
+   */
+  removeDeletedPages?: boolean;
+}
+
+export interface CitationConfig {
+  /**
+   * Show inline citation badges.
+   * @default true
+   */
+  showInlineCitations?: boolean;
+
+  /**
+   * Show references section at bottom of answer.
+   * @default false — OFF by default (citations are usually enough)
+   */
+  showReferencesSection?: boolean;
+
+  /**
+   * Citation display style.
+   * 'superscript' — ¹²³ (small numbers above text)
+   * 'inline'      — [1] [2] [3] (bracketed numbers)
+   * 'underline'   — Underlined text links to source
+   * @default 'superscript'
+   */
+  style?: 'superscript' | 'inline' | 'underline';
+
+  /**
+   * Maximum citations to show inline.
+   * @default 10
+   */
+  maxInlineCitations?: number;
+
+  /**
+   * Show citation count badge.
+   * @default false
+   */
+  showCitationCount?: boolean;
+}
+
+export interface ReferenceConfig {
+  /**
+   * Show references section.
+   * @default false — OFF by default
+   */
+  enabled?: boolean;
+
+  /**
+   * Reference display style.
+   * 'list'    — Numbered list at bottom
+   * 'pills'   — Clickable pill badges
+   * 'inline'  — Inline underlined links
+   * @default 'list'
+   */
+  style?: 'list' | 'pills' | 'inline';
+
+  /**
+   * Show reference title/heading.
+   * @default true
+   */
+  showTitle?: boolean;
+
+  /**
+   * Maximum references to show.
+   * @default 10
+   */
+  maxReferences?: number;
+
+  /**
+   * Group references by page.
+   * @default false
+   */
+  groupByPage?: boolean;
+
+  /**
+   * Show snippet preview in references.
+   * @default false
+   */
+  showSnippet?: boolean;
+
+  /**
+   * Custom reference title.
+   * @default 'References'
+   */
+  title?: string;
+}
+
 export interface DepthIndexOptions {
+  gpu?: GPUConfig;
+  subscription?: SubscriptionConfig;
+  webhooks?: WebhookConfig[];
+  banners?: BannerConfig[];
+  components?: Record<string, any>;
+  design?: {
+    cssVariables?: Record<string, string>;
+    customCSS?: string;
+  };
+  indexDownload?: IndexDownloadConfig;
+  citations?: CitationConfig;
+  references?: ReferenceConfig;
   searchMode?: 'on-device' | 'cloud' | 'hybrid';
   placement?: PlacementConfig;
   searchBar?: SearchBarConfig;

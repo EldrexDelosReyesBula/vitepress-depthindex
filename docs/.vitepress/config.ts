@@ -49,6 +49,8 @@ export default defineConfig({
           { text: 'Switching Between Modes', link: '/guide/switching-modes' },
           { text: 'Cloud-Only Mode', link: '/guide/cloud-only-mode' },
           { text: 'Answer Synthesis', link: '/guide/answer-synthesis' },
+          { text: 'GPU Acceleration', link: '/guide/gpu-acceleration' },
+          { text: 'Index Download Strategies', link: '/guide/index-download' },
         ]
       },
       // ─── Search Bar ───
@@ -105,6 +107,17 @@ export default defineConfig({
           { text: 'AI Personality & Presets', link: '/guide/personality' },
           { text: 'Usage & Token Limits', link: '/guide/usage-limits' },
           { text: 'Subscription Gating', link: '/guide/subscription' },
+        ]
+      },
+      // ─── White-Label & Monetization ───
+      {
+        text: 'Monetization & White-Label',
+        collapsed: true,
+        items: [
+          { text: 'Monetization & Subscription', link: '/guide/monetization' },
+          { text: 'Webhooks SDK', link: '/guide/webhooks' },
+          { text: 'Banners, Modals & Sheets', link: '/guide/banners' },
+          { text: 'Custom Components & Headless', link: '/guide/custom-components' },
         ]
       },
       // ─── API Reference ───

@@ -13,3 +13,5 @@ vitepress-depthindex-template/
 .npmrc
 
 
+.vercel
+.env*

@@ -1,4 +1,6 @@
 import { CloudAdapter, CloudAIRequest } from './cloud-adapter.js';
+import { MarkdownCleaner } from './markdown-cleaner.js';
+import { ConfidenceScorer } from './confidence-scorer.js';
 
 export interface SynthesisStage {
   stage: 'filtering' | 'clustering' | 'extracting' | 'building' | 
@@ -251,11 +253,16 @@ export class AnswerSynthesizer {
     }
     
     const relatedTopics = this.extractRelatedTopics(clusters, query);
+    const cleaner = new MarkdownCleaner();
+    const scorer = new ConfidenceScorer();
+    const cleanedAnswer = cleaner.clean(answer);
+    const allResults = Array.from(clusters.values()).flat();
+    const confidence = scorer.calculate(allResults, query, cleanedAnswer);
     
     return {
-      content: answer,
+      content: cleanedAnswer,
       citations: ctx.citations,
-      confidence: this.calculateConfidence(clusters),
+      confidence,
       relatedTopics,
       source: 'local',
       requestId: ctx.requestId,
@@ -285,10 +292,16 @@ export class AnswerSynthesizer {
         ctx.requestId
       );
       
+      const cleaner = new MarkdownCleaner();
+      const scorer = new ConfidenceScorer();
+      const cleanedContent = cleaner.clean(contentWithCitations);
+      const allResults = Array.from(clusters.values()).flat();
+      const confidence = scorer.calculate(allResults, query, cleanedContent);
+
       return {
-        content: contentWithCitations,
+        content: cleanedContent,
         citations: [...ctx.citations],
-        confidence: 0.9,
+        confidence,
         relatedTopics: localAnswer.relatedTopics,
         source: 'cloud',
         requestId: ctx.requestId,

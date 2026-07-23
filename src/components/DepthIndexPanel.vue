@@ -281,6 +281,13 @@
                 </button>
               </div>
             </slot>
+            <!-- Disclaimer Banner -->
+            <div v-if="props.options?.panel?.showDisclaimer !== false" class="disclaimer-banner" style="font-size: 11px; opacity: 0.75; text-align: center; padding: 4px 12px; margin-top: 4px;">
+              <span>{{ props.options?.panel?.disclaimerText || 'AI may respond inaccurately.' }}</span>
+              <a v-if="props.options?.panel?.disclaimerLink" :href="props.options?.panel?.disclaimerLink" target="_blank" rel="noopener noreferrer" style="margin-left: 4px; text-decoration: underline; color: inherit;">Learn more</a>
+              <a v-if="props.options?.panel?.reportUrl" :href="props.options?.panel?.reportUrl" target="_blank" rel="noopener noreferrer" style="margin-left: 6px; text-decoration: underline; color: inherit;">Report bug</a>
+              <a v-if="props.options?.panel?.feedbackUrl" :href="props.options?.panel?.feedbackUrl" target="_blank" rel="noopener noreferrer" style="margin-left: 6px; text-decoration: underline; color: inherit;">Feedback</a>
+            </div>
             <div class="panel-footer">
               <div class="footer-left">
                 <button @click="openCloudConfig" class="cloud-status-btn">

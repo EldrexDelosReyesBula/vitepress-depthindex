@@ -1,17 +1,57 @@
-import { SerializedIndex, SearchResult } from '../types/index.js';
+import { SerializedIndex, SearchResult, DepthIndexOptions } from '../types/index.js';
 import { processQuery } from './query-processor.js';
 import { tokenizeAndStem } from '../utils/tokenizer.js';
+import { GPUAcceleratedSearch, GPUEmbeddingGenerator } from '../gpu/index.js';
 
 export class DepthIndexEngine {
   private index: SerializedIndex | null = null;
   private vocabIndexMap: Record<string, number> = {};
   private avgDocLength = 0;
   private chunkLengths: number[] = [];
+  private gpuSearch: GPUAcceleratedSearch | null = null;
+  private gpuEmbeddings: GPUEmbeddingGenerator | null = null;
+  private useGPU = false;
 
-  constructor(index?: SerializedIndex) {
+  constructor(index?: SerializedIndex, options?: DepthIndexOptions) {
     if (index) {
       this.setIndex(index);
     }
+    if (options) {
+      this.init(options).catch(() => {});
+    }
+  }
+
+  public async init(config?: DepthIndexOptions): Promise<void> {
+    if (config?.gpu?.enabled !== false) {
+      this.useGPU = await this.initGPU(config?.gpu || {});
+    }
+  }
+
+  private async initGPU(config: DepthIndexOptions['gpu']): Promise<boolean> {
+    try {
+      this.gpuSearch = new GPUAcceleratedSearch();
+      this.gpuEmbeddings = new GPUEmbeddingGenerator();
+
+      const searchReady = await this.gpuSearch.init();
+      const embeddingsReady = await this.gpuEmbeddings.init();
+
+      if (searchReady || embeddingsReady) {
+        console.log('[DepthIndex] GPU acceleration enabled');
+        return true;
+      }
+    } catch (error) {
+      if (config?.fallback === 'warn') {
+        console.warn('[DepthIndex] GPU not available, using CPU:', error);
+      } else if (config?.fallback === 'error') {
+        throw error;
+      }
+    }
+
+    return false;
+  }
+
+  public isGPUEnabled(): boolean {
+    return this.useGPU;
   }
 
   public setIndex(index: SerializedIndex): void {
