@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: VitePress DepthIndex
-  text: Offline-First AI Search Engine
-  tagline: "Zero-latency, on-device hybrid search and conversational AI for VitePress documentation."
+  text: On-Device AI Search & Reasoning
+  tagline: "Zero-latency, offline-first hybrid vector search and conversational AI for VitePress documentation."
   image:
     src: /vitepress-depthindex-official-logo.svg
     alt: DepthIndex Logo
