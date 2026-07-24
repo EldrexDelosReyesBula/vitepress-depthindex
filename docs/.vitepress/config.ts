@@ -53,7 +53,7 @@ export default defineConfig({
       ['link', { rel: 'canonical', href: canonicalUrl }],
       ['meta', { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' }],
       ['meta', { name: 'author', content: 'Eldrex Delos Reyes Bula' }],
-      ['meta', { name: 'generator', content: 'VitePress DepthIndex v1.2.2' }],
+      ['meta', { name: 'generator', content: 'VitePress DepthIndex v1.3.0' }],
       ['meta', { property: 'og:site_name', content: 'VitePress DepthIndex' }],
       ['meta', { property: 'og:type', content: pageData.relativePath === 'index.md' ? 'website' : 'article' }],
       ['meta', { property: 'og:title', content: pageTitle }],
@@ -79,7 +79,7 @@ export default defineConfig({
             'operatingSystem': 'Browser',
             'url': 'https://depthindex.vercel.app',
             'downloadUrl': 'https://www.npmjs.com/package/vitepress-plugin-depthindex',
-            'softwareVersion': '1.2.2',
+            'softwareVersion': '1.3.0',
             'license': 'https://opensource.org/licenses/MIT',
             'description': 'Production-grade, offline-first search and reasoning engine designed to turn standard documentation sites into AI-native experiences.',
             'offers': {
@@ -236,6 +236,7 @@ export default defineConfig({
           { text: 'Switching Between Modes', link: '/guide/switching-modes' },
           { text: 'Cloud-Only Mode', link: '/guide/cloud-only-mode' },
           { text: 'Answer Synthesis', link: '/guide/answer-synthesis' },
+          { text: 'Experimental Engine', link: '/guide/experimental-engine' },
           { text: 'GPU Acceleration', link: '/guide/gpu-acceleration' },
           { text: 'Index Download Strategies', link: '/guide/index-download' },
         ]

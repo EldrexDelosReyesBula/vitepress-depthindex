@@ -56,6 +56,15 @@ const virtualModuleId = 'virtual:depthindex-client';
 const resolvedVirtualModuleId = '\0' + virtualModuleId;
 
 const DEFAULT_OPTIONS: DepthIndexOptions = {
+  experimental: {
+    enabled: false,
+    mode: 'auto',
+    modelSize: 'small',
+    maxResponseTokens: 512,
+    temperature: 0.3,
+    enableReasoning: true,
+    enableKnowledgeGraph: true,
+  },
   gpu: {
     enabled: true,
     maxMemoryMB: 256,
@@ -1023,5 +1032,14 @@ export { WebhookManager } from './sdk/webhooks/types.js';
 export { BannerManager } from './client/banner-manager.js';
 export { GranularIndexLoader } from './client/granular-index-loader.js';
 export { CitationRenderer } from './client/citation-renderer.js';
+export { AnswerSynthesizer } from './client/answer-synthesizer.js';
+export { ExperimentalEngine, SemanticChunker, KnowledgeGraph, ReasoningEngine } from './experimental/index.js';
+export type { SemanticChunk, GraphNode, GraphEdge, ReasoningStep, ReasoningResult, ExperimentalResult, CrossPageConnection } from './experimental/index.js';
+export { DepthIndexCore } from './core/engine.js';
+export { HealthAuditor } from './core/health-auditor.js';
+export type { HealthReport, HealthIssue, HealthWarning } from './core/health-auditor.js';
+export { InteractiveSearch } from './client/interactive-search.js';
+export type { ExtractedPage, PageChunk, DepthIndexOptions, ExperimentalConfig } from './types/index.js';
+
 
 

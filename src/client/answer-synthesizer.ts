@@ -42,6 +42,12 @@ export interface Citation {
   snippet: string;
 }
 
+export interface SynthesisTemplate {
+  intent: string;
+  requiresCrossPage: boolean;
+  template: (chunks: any[], ctx: any) => string;
+}
+
 interface SynthesisContext {
   citations: Citation[];
   usedSnippets: Set<string>;
@@ -51,6 +57,137 @@ interface SynthesisContext {
 }
 
 export class AnswerSynthesizer {
+  private heuristicTemplates: Map<string, SynthesisTemplate> = new Map();
+
+  constructor() {
+    this.registerHeuristicTemplates();
+  }
+
+  private registerHeuristicTemplates(): void {
+    // Template: How-to with cross-page dependencies
+    this.heuristicTemplates.set('how_to_cross_page', {
+      intent: 'how_to',
+      requiresCrossPage: true,
+      template: (chunks, ctx) => {
+        const preReqs = chunks.filter(c => c.type === 'prerequisite');
+        const steps = chunks.filter(c => c.type === 'instruction');
+        const config = chunks.filter(c => c.type === 'configuration');
+        const verify = chunks.filter(c => c.type === 'verification');
+        
+        let answer = '';
+        
+        // Prerequisites section (from other pages)
+        if (preReqs.length > 0) {
+          answer += '**Before you begin:**\n';
+          preReqs.slice(0, 3).forEach(p => {
+            answer += `- ${p.summary || p.text} [→ ${p.pageTitle || p.page?.title || 'Page'}](${p.pageUrl || p.page?.url || '#'})\n`;
+          });
+          answer += '\n';
+        }
+        
+        // Steps
+        if (steps.length > 0) {
+          answer += '**Steps:**\n\n';
+          steps.slice(0, 8).forEach((s, i) => {
+            answer += `${i + 1}. ${s.summary || s.text}\n`;
+          });
+          answer += '\n';
+        }
+        
+        // Configuration needed
+        if (config.length > 0) {
+          answer += '**Configuration:**\n';
+          answer += `${config[0].text}\n\n`;
+        }
+        
+        // Verification
+        if (verify.length > 0) {
+          answer += '**Verify it works:**\n';
+          answer += `${verify[0].text}\n`;
+        }
+        
+        return answer;
+      },
+    });
+    
+    // Template: Definition with related concepts
+    this.heuristicTemplates.set('definition_with_related', {
+      intent: 'definition',
+      requiresCrossPage: true,
+      template: (chunks, ctx) => {
+        const defs = chunks.filter(c => c.type === 'definition');
+        const related = chunks.filter(c => c.type === 'related_concept');
+        const examples = chunks.filter(c => c.type === 'example');
+        
+        let answer = '';
+        
+        if (defs.length > 0) {
+          answer += `${defs[0].text}\n\n`;
+        }
+        
+        if (related.length > 0) {
+          answer += '**Related concepts:**\n';
+          related.slice(0, 5).forEach(r => {
+            answer += `- **${r.keyTerms?.[0] || 'Term'}**: ${r.summary || r.text} [→ ${r.pageTitle || r.page?.title || 'Page'}](${r.pageUrl || r.page?.url || '#'})\n`;
+          });
+          answer += '\n';
+        }
+        
+        if (examples.length > 0) {
+          answer += '**Example:**\n';
+          answer += `${examples[0].text}\n`;
+        }
+        
+        return answer;
+      },
+    });
+    
+    // Template: Troubleshooting with cause → solution chain
+    this.heuristicTemplates.set('troubleshoot_chain', {
+      intent: 'troubleshoot',
+      requiresCrossPage: false,
+      template: (chunks, ctx) => {
+        const causes = chunks.filter(c => c.type === 'cause' || (c.text && (c.text.toLowerCase().includes('cause') || c.text.toLowerCase().includes('because'))));
+        const solutions = chunks.filter(c => c.type === 'solution' || (c.text && (c.text.toLowerCase().includes('solution') || c.text.toLowerCase().includes('fix') || c.text.toLowerCase().includes('resolve'))));
+        
+        let answer = '';
+        
+        if (causes.length > 0 && solutions.length > 0) {
+          answer += '**Likely cause:**\n';
+          answer += `${causes[0].summary || causes[0].text}\n\n`;
+          answer += '**Solution:**\n';
+          answer += `${solutions[0].text}\n`;
+        } else {
+          answer += chunks.slice(0, 3).map(c => `- ${c.summary || c.text}`).join('\n');
+        }
+        
+        return answer;
+      },
+    });
+  }
+
+  selectHeuristicTemplate(
+    intent: string,
+    chunks: any[]
+  ): SynthesisTemplate | null {
+    const hasCrossPage = new Set(chunks.map(c => c.pageUrl || c.page?.url)).size > 1;
+    const types = new Set(chunks.map(c => c.type));
+    
+    if (intent === 'how_to' && hasCrossPage && types.has('prerequisite')) {
+      return this.heuristicTemplates.get('how_to_cross_page') || null;
+    }
+    
+    if (intent === 'definition' && hasCrossPage && types.has('related_concept')) {
+      return this.heuristicTemplates.get('definition_with_related') || null;
+    }
+    
+    if (intent === 'troubleshoot' && (types.has('cause') || types.has('solution'))) {
+      return this.heuristicTemplates.get('troubleshoot_chain') || null;
+    }
+    
+    return null;
+  }
+
   
   async synthesize(
     query: string,

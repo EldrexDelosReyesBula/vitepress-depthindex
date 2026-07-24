@@ -5,13 +5,17 @@ dist/
 .env.*
 *.log
 .DS_Store
-.github/
 scratch/
 .devdiff.config.js
 .devdiffignore
 vitepress-depthindex-template/
 .npmrc
-
+.vitepress/cache/
+.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+cache/
 
 .vercel
 .env*
+

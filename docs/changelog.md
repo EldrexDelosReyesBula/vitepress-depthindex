@@ -2,6 +2,22 @@
 
 All notable changes to the **VitePress DepthIndex** project will be documented in this file.
 
+## [1.3.0] - 2026-07-24
+
+### Added
+- **Experimental Local Intelligence Engine** (`src/experimental/`):
+  - **Semantic Chunker** (`src/experimental/semantic-chunker.ts`): Categorizes documentation chunks into semantic types (`instruction`, `configuration`, `example`, `definition`, `explanation`, `reference`), extracts key terms, and computes Float32 sparse TF-IDF embedding vectors.
+  - **Local Knowledge Graph** (`src/experimental/knowledge-graph.ts`): Constructs concept, page, and section nodes, models typed relationships (`references`, `related_to`), and provides BFS graph traversal and concept explanation path discovery.
+  - **Multi-Step Reasoning Engine** (`src/experimental/reasoning-engine.ts`): Executes a 5-step NLU pipeline (`UNDERSTAND` → `RETRIEVE` → `ANALYZE` → `SYNTHESIZE` → `VERIFY`) with context-aware natural language answer synthesis and citation verification.
+  - **Experimental Engine Facade** (`src/experimental/engine.ts`): Standalone intelligence engine manager with initialization, fallback behavior, and runtime statistics.
+
+- **Strategic Engine Enhancements**:
+  - **Framework-Agnostic Core** (`src/core/engine.ts` & `@depthindex/core`): Extracted `DepthIndexCore` class allowing DepthIndex to run on any SSG framework or custom documentation app without VitePress or Vite dependencies.
+  - **Documentation Health Audits** (`src/core/health-auditor.ts`): `HealthAuditor` system detecting orphaned pages, missing code examples for code concepts, cross-page contradictions, empty headings, and computing a 0–100 health score.
+  - **Interactive Search UI** (`src/client/interactive-search.ts`): Floating "Explain This" selection widget triggered by `Ctrl/Cmd+Shift+K` keyboard shortcut and Code Playground snippet runner/editor.
+  - **Heuristic NLU Synthesis**: Heuristic synthesis template registry (`how_to_cross_page`, `definition_with_related`, `troubleshoot_chain`) and composition-based template selection.
+  - **Cross-Page Knowledge Traversal**: Extended `KnowledgeGraph` to detect cross-page relationships (`prerequisite`, `configures`, `extends`, `troubleshoots`, `references`) with evidence string generation.
+
 ## [1.2.2] - 2026-07-23
 
 ### Added

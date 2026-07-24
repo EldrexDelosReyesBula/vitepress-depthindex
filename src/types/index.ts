@@ -414,7 +414,59 @@ export interface ReferenceConfig {
   title?: string;
 }
 
+export interface ExperimentalConfig {
+  /**
+   * Enable experimental local intelligence engine.
+   * @default false — OFF by default
+   */
+  enabled?: boolean;
+
+  /**
+   * Engine mode.
+   * 'auto'  — Use best available (transformer > graph > semantic)
+   * 'transformer' — Small ONNX transformer model (~15MB)
+   * 'graph' — Local knowledge graph + reasoning
+   * 'semantic' — Semantic chunking + synthesis (lightest)
+   * @default 'auto'
+   */
+  mode?: 'auto' | 'transformer' | 'graph' | 'semantic';
+
+  /**
+   * Model size for transformer mode.
+   * 'tiny'  — ~8MB, fastest, lower quality
+   * 'small' — ~15MB, balanced
+   * 'base'  — ~30MB, best quality (requires more RAM)
+   * @default 'small'
+   */
+  modelSize?: 'tiny' | 'small' | 'base';
+
+  /**
+   * Maximum tokens for generated response.
+   * @default 512
+   */
+  maxResponseTokens?: number;
+
+  /**
+   * Temperature for generation (0 = deterministic, 1 = creative).
+   * @default 0.3
+   */
+  temperature?: number;
+
+  /**
+   * Enable multi-step reasoning.
+   * @default true
+   */
+  enableReasoning?: boolean;
+
+  /**
+   * Enable knowledge graph for cross-page connections.
+   * @default true
+   */
+  enableKnowledgeGraph?: boolean;
+}
+
 export interface DepthIndexOptions {
+  experimental?: ExperimentalConfig;
   gpu?: GPUConfig;
   subscription?: SubscriptionConfig;
   webhooks?: WebhookConfig[];
