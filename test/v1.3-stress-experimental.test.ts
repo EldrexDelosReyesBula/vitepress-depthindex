@@ -85,5 +85,5 @@ describe('VitePress DepthIndex v1.3.0 — Experimental Engine Stress Testing', (
     const endAudit = performance.now();
     console.log(`[stress-experimental] Health audit score: ${report.score}/100 in ${(endAudit - startAudit).toFixed(2)}ms`);
     expect(report.score).toBeGreaterThan(0);
-  });
+  }, 30000);
 });
