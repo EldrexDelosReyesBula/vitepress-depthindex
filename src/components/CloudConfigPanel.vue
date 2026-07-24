@@ -173,7 +173,24 @@
               </span>
               <span>{{ testResult.message }}</span>
             </div>
-          </Transition>
+          <!-- Telemetry / Vercel Analytics Consent -->
+          <div class="form-group" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--di-border, rgba(0,0,0,0.08));">
+            <label class="form-label" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span>📊</span>
+                <span>Vercel Analytics</span>
+              </span>
+              <input
+                type="checkbox"
+                :checked="analyticsConsent"
+                @change="toggleAnalytics(($event.target as HTMLInputElement).checked)"
+                style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--di-primary, #6366f1);"
+              />
+            </label>
+            <span class="label-hint" style="display: block; margin-top: 4px; font-size: 0.75rem;">
+              {{ analyticsConsent ? 'Telemetry enabled (click to opt out)' : 'Telemetry disabled (click to opt in)' }}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -290,9 +307,20 @@ const providers = [
   },
 ];
 
+const analyticsConsent = ref(false);
+
+function toggleAnalytics(consented: boolean) {
+  analyticsConsent.value = consented;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('depthindex-analytics-consent', consented ? 'true' : 'false');
+    window.dispatchEvent(new CustomEvent('depthindex:analytics-consent-changed', { detail: { consented } }));
+  }
+}
+
 // Load saved config
 onMounted(() => {
   if (typeof window !== 'undefined') {
+    analyticsConsent.value = localStorage.getItem('depthindex-analytics-consent') === 'true';
     const saved = localStorage.getItem('depthindex-cloud-config');
     if (saved) {
       try {

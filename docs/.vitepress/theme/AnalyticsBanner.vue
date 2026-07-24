@@ -33,12 +33,6 @@
     </div>
   </Transition>
 
-  <!-- Settings toggle — visible in footer area -->
-  <div v-if="decided" class="di-consent-revoke">
-    <button class="di-consent-revoke-btn" @click="revoke" :title="currentLabel">
-      📊 {{ currentLabel }}
-    </button>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -98,6 +92,18 @@ onMounted(() => {
   } else {
     consented.value = false
     decided.value = true
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('depthindex:analytics-consent-changed', ((e: CustomEvent) => {
+      const isConsented = e.detail?.consented
+      consented.value = isConsented
+      decided.value = true
+      showBanner.value = false
+      if (isConsented) {
+        injectAnalytics()
+      }
+    }) as EventListener)
   }
 })
 </script>
