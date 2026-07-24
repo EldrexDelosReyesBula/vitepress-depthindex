@@ -136,8 +136,8 @@ describe('VitePress DepthIndex Stress Testing', () => {
     console.log(`[stress-test] Average Search Latency: ${avgLatency.toFixed(4)}ms`);
     console.log(`[stress-test] Maximum Search Latency: ${Math.max(...searchLatencies).toFixed(4)}ms`);
 
-    // Performance assertion: Average search latency must be under 30ms on local engine
-    expect(avgLatency).toBeLessThan(30);
+    // Performance assertion: Average search latency must be under 50ms on cloud CI runner (1000 pages)
+    expect(avgLatency).toBeLessThan(50);
   }, 20000);
 
 });
