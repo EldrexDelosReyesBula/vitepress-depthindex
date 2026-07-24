@@ -19,20 +19,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Run full test suite
-        run: pnpm test
+        run: npm test
 
       - name: Build package
-        run: pnpm run build
+        run: npm run build
 
       - name: Verify build outputs
         run: |
