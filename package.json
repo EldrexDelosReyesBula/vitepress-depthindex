@@ -46,7 +46,6 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts src/client/index-loader.ts src/client/search-engine.ts src/client/query-processor.ts src/client/cloud-adapter.ts src/client/personalization.ts src/client/pwa-handler.ts src/client/session-manager.ts src/client/conversation-handler.ts src/client/page-context.ts src/client/renderers.ts src/client/performance.ts src/client/search-worker.ts src/client/error-handler.ts src/client/security.ts src/config/env.ts src/client/legal-notices.ts src/client/pii-detector.ts src/build/compliance-generator.ts src/client/answer-synthesizer.ts src/build/seo-optimizer.ts src/build/meta-injector.ts src/build/free-domain-seo.ts src/client/branding.ts src/client/icons.ts src/client/site-context.ts src/client/site-intelligence.ts src/client/intent-engine.ts src/client/suggestion-engine.ts src/client/search-modes.ts src/sdk/index.ts src/sdk/compliance.ts src/extensions/i18n/index.ts src/extensions/cloud/index.ts src/extensions/tts/index.ts src/build/delta-indexer.ts src/client/secure-updater.ts src/client/device-adapter.ts src/client/cloud-knowledge.ts src/privacy/query-guard.ts src/analytics/privacy-analytics.ts src/client/runtime.ts src/client/conversation-memory.ts src/gpu/index.ts src/sdk/subscription/index.ts src/sdk/webhooks/index.ts src/client/headless.ts src/client/markdown-cleaner.ts src/client/safety-guard.ts src/client/confidence-scorer.ts src/client/answer-pipeline.ts src/client/page-features.ts src/client/granular-index-loader.ts src/core/index.ts src/experimental/index.ts src/client/interactive-search.ts --dts --format esm,cjs --external vue,vitepress --clean && node -e \"const fs = require('fs'); fs.mkdirSync('dist/styles', {recursive:true}); fs.copyFileSync('src/styles/search-bar.css', 'dist/styles/search-bar.css'); fs.copyFileSync('src/styles/tokens.css', 'dist/styles/tokens.css');\"",
-
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -84,6 +83,7 @@
     "vue": "^3.3.0"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "lz-string": "^1.5.0",
     "minisearch": "^6.3.0",
     "stemmer": "^2.0.1"

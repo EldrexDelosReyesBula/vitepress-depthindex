@@ -1,5 +1,12 @@
 import DefaultTheme from 'vitepress/theme';
+import { h } from 'vue';
+import AnalyticsBanner from './AnalyticsBanner.vue';
 
-// The DepthIndex Vite plugin (from npm) handles all component injection automatically.
-// No manual FloatingButton import needed — the plugin injects it via virtual module.
-export default DefaultTheme;
+export default {
+  extends: DefaultTheme,
+  Layout() {
+    return h(DefaultTheme.Layout, null, {
+      'layout-bottom': () => h(AnalyticsBanner)
+    });
+  }
+};
